@@ -1,1531 +1,1566 @@
 <!doctype html>
 <html lang="ru">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <title>Matching Game — Редактор</title>
-
-  <style>
-    :root {
-      color-scheme: dark;
-      --accent: #49e0c1;
-      --muted: #9aa9bd;
-      --card: #64123f;
-      --correct: #16834a;
-      --wrong: #d43d4f;
-      --reset: #2dd4bf;
-      --reset-text: #042022;
-    }
-
-    * { box-sizing: border-box; }
-
-    html, body {
-      min-height: 100%;
-      margin: 0;
-    }
-
-    body {
-      padding: 16px;
-      color: #edf4fb;
-      font: 15px/1.45 Inter, system-ui, -apple-system, "Segoe UI", Arial, sans-serif;
-      background:
-        radial-gradient(ellipse at 12% 0%, rgba(22, 89, 112, .32), transparent 38%),
-        radial-gradient(ellipse at 96% 92%, rgba(79, 48, 126, .22), transparent 34%),
-        linear-gradient(145deg, #07111f 0%, #0a1728 55%, #0b1220 100%);
-      background-attachment: fixed;
-    }
-
-    body::before {
-      content: "";
-      position: fixed;
-      inset: 0;
-      z-index: -1;
-      pointer-events: none;
-      background-image: radial-gradient(rgba(255,255,255,.04) .7px, transparent .7px);
-      background-size: 18px 18px;
-      opacity: .18;
-    }
-
-    button, input, select, textarea { font: inherit; }
-
-    header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 16px;
-      margin: 0 0 18px;
-      padding: 16px 20px;
-      border: 1px solid rgba(255,255,255,.08);
-      border-radius: 16px;
-      background: rgba(12,22,38,.68);
-      backdrop-filter: blur(16px);
-      box-shadow: 0 10px 36px rgba(0,0,0,.2);
-    }
-
-    h1 {
-      margin: 0;
-      font-size: clamp(20px, 2vw, 26px);
-      font-weight: 750;
-      letter-spacing: -.035em;
-    }
-
-    h2 {
-      margin: 0 0 15px;
-      font-size: 19px;
-      font-weight: 700;
-      letter-spacing: -.025em;
-    }
-
-    h3 {
-      margin: 0 0 12px;
-      color: #c4d1e1;
-      font-size: 12px;
-      letter-spacing: .09em;
-      text-transform: uppercase;
-    }
-
-    label, .small { color: var(--muted); }
-    .small { font-size: 13px; }
-
-    .container {
-      display: grid;
-      grid-template-columns: minmax(320px, 430px) minmax(0, 1fr);
-      gap: 18px;
-      align-items: stretch;
-    }
-
-    .panel {
-      min-width: 0;
-      padding: clamp(16px, 2vw, 24px);
-      border: 1px solid rgba(255,255,255,.09);
-      border-radius: 18px;
-      background: linear-gradient(150deg, rgba(18,31,51,.94), rgba(10,19,34,.92));
-      box-shadow: 0 18px 48px rgba(0,0,0,.28), inset 0 1px rgba(255,255,255,.035);
-      backdrop-filter: blur(18px);
-    }
-
-    .editor h2::after {
-      content: "";
-      display: block;
-      width: 34px;
-      height: 3px;
-      margin-top: 9px;
-      border-radius: 3px;
-      background: linear-gradient(90deg, var(--accent), transparent);
-    }
-
-    .field { margin: 0 0 12px; }
-
-    .field > label {
-      display: block;
-      margin: 0 0 6px;
-      color: #bdc9d9;
-      font-size: 12px;
-      font-weight: 650;
-      letter-spacing: .02em;
-    }
-
-    textarea,
-    input[type="text"],
-    input[type="url"],
-    input[type="number"],
-    select {
-      width: 100%;
-      min-width: 0;
-      padding: 10px 12px;
-      border: 1px solid rgba(175,199,226,.17);
-      border-radius: 10px;
-      outline: none;
-      color: #f0f5fc;
-      background: rgba(4,11,21,.58);
-      transition: border-color .18s, box-shadow .18s, background .18s;
-    }
-
-    textarea {
-      min-height: 155px;
-      resize: vertical;
-      line-height: 1.5;
-    }
-
-    textarea::placeholder, input::placeholder { color: #718198; }
-
-    textarea:focus,
-    input[type="text"]:focus,
-    input[type="url"]:focus,
-    input[type="number"]:focus,
-    select:focus {
-      border-color: rgba(73,224,193,.78);
-      background: rgba(4,11,21,.8);
-      box-shadow: 0 0 0 3px rgba(73,224,193,.12);
-    }
-
-    select option { background: #101a2b; }
-
-    input[type="color"] {
-      width: 38px;
-      height: 32px;
-      padding: 2px;
-      border: 1px solid rgba(255,255,255,.2);
-      border-radius: 8px;
-      background: rgba(255,255,255,.05);
-      cursor: pointer;
-    }
-
-    input[type="range"] { accent-color: var(--accent); }
-
-    .hint {
-      margin: 6px 0 0;
-      color: #8999ae;
-      font-size: 12px;
-      line-height: 1.5;
-    }
-
-    .grid2 {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 12px;
-    }
-
-    .grid3 {
-      display: grid;
-      grid-template-columns: repeat(3, minmax(0, 1fr));
-      gap: 12px;
-    }
-
-    .setting-box {
-      margin: 14px 0;
-      padding: 14px;
-      border: 1px solid rgba(255,255,255,.085);
-      border-radius: 13px;
-      background: rgba(4,12,23,.3);
-    }
-
-    .control-row {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      flex-wrap: wrap;
-    }
-
-    .color-control {
-      display: flex;
-      min-width: 0;
-      align-items: center;
-      gap: 7px;
-      padding: 8px 10px;
-      border: 1px solid rgba(255,255,255,.055);
-      border-radius: 10px;
-      background: rgba(255,255,255,.035);
-    }
-
-    .color-control label,
-    .color-control span {
-      color: #bdc9d9;
-      font-size: 12px;
-      font-weight: 600;
-    }
-
-    .actions {
-      display: flex;
-      gap: 9px;
-      flex-wrap: wrap;
-      margin: 16px 0 12px;
-    }
-
-    button {
-      padding: 9px 13px;
-      border: 1px solid rgba(196,215,237,.18);
-      border-radius: 10px;
-      color: #eaf2fb;
-      background: rgba(255,255,255,.055);
-      font-size: 13px;
-      font-weight: 650;
-      cursor: pointer;
-      transition: transform .18s, border-color .18s, background .18s, box-shadow .18s;
-    }
-
-    button:hover {
-      border-color: rgba(73,224,193,.5);
-      background: rgba(73,224,193,.09);
-      box-shadow: 0 5px 16px rgba(0,0,0,.18);
-    }
-
-    button:active { transform: translateY(1px); }
-
-    button.primary {
-      border: 0;
-      color: #06231e;
-      background: linear-gradient(135deg, #55e3c4, #29c3a6);
-      box-shadow: 0 7px 20px rgba(41,195,166,.16);
-    }
-
-    button.primary:hover {
-      background: linear-gradient(135deg, #70efd2, #36d0b2);
-    }
-
-    #resetBtn {
-      border-color: var(--reset);
-      color: var(--reset-text);
-      background: var(--reset);
-      box-shadow: 0 5px 16px rgba(73,224,193,.16);
-    }
-
-    #resetBtn:hover { filter: brightness(1.12); }
-
-    .output textarea {
-      min-height: 86px;
-      color: #c8d7e7;
-      background: rgba(3,10,19,.72);
-      font: 12px/1.4 ui-monospace, SFMono-Regular, Consolas, monospace;
-    }
-
-    .preview {
-      display: flex;
-      flex-direction: column;
-      min-width: 0;
-    }
-
-    .game-top {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 10px;
-      margin-bottom: 14px;
-      padding: 2px 2px 13px;
-      border-bottom: 1px solid rgba(255,255,255,.08);
-    }
-
-    .game-top h2 { margin: 0; font-size: 18px; }
-
-    .game-controls {
-      display: flex;
-      align-items: center;
-      justify-content: flex-end;
-      gap: 10px;
-      flex-wrap: wrap;
-    }
-
-    .stat {
-      padding: 7px 10px;
-      border: 1px solid rgba(255,255,255,.06);
-      border-radius: 9px;
-      color: #c2cede;
-      background: rgba(255,255,255,.045);
-      font-size: 13px;
-      white-space: nowrap;
-    }
-
-    .stat b { margin-left: 3px; color: #f2f7fc; }
-
-    .stage {
-      position: relative;
-      isolation: isolate;
-      flex: 1;
-      height: min(76vh, 820px);
-      min-height: 520px;
-      overflow: hidden;
-      border: 1px solid rgba(255,255,255,.09);
-      border-radius: 15px;
-      background: rgba(3,9,17,.16);
-      box-shadow: inset 0 1px rgba(255,255,255,.04);
-    }
-
-    .stage-bg {
-      position: absolute;
-      inset: -32px;
-      z-index: -1;
-      overflow: hidden;
-      border-radius: inherit;
-      pointer-events: none;
-      background: transparent;
-      will-change: filter, transform;
-    }
-
-    .stage-bg::after {
-      content: "";
-      position: absolute;
-      inset: 0;
-      opacity: 0;
-      pointer-events: none;
-      background:
-        repeating-linear-gradient(0deg, transparent 0 12px, #00e5ff20 12px 14px, transparent 14px 25px),
-        linear-gradient(90deg, #ff00a020, #00e5ff18, #ff00a020);
-      mix-blend-mode: screen;
-    }
-
-    .stage-bg.glitch::after {
-      opacity: var(--glitch-opacity, .14);
-      animation: glitchBg .35s steps(2, end) infinite;
-    }
-
-    .stage-bg.glitch.strong::after {
-      opacity: var(--glitch-opacity, .24);
-      animation-duration: .16s;
-      background-size: 100% 100%, 160% 100%;
-    }
-
-    @keyframes glitchBg {
-      0% { transform: translate(0,0); clip-path: inset(0 0 84% 0); }
-      25% { transform: translate(5px,-2px); clip-path: inset(28% 0 50% 0); }
-      50% { transform: translate(-4px,1px); clip-path: inset(61% 0 21% 0); }
-      75% { transform: translate(2px,0); clip-path: inset(82% 0 5% 0); }
-      100% { transform: none; clip-path: inset(0); }
-    }
-
-    @keyframes blurPulse {
-      0%, 100% { filter: blur(0); }
-      50% { filter: blur(var(--blur-max, 6px)); }
-    }
-
-    .stage-bg.animated-blur {
-      animation: blurPulse var(--blur-duration, 4s) ease-in-out infinite;
-    }
-
-    .stage-content {
-      position: relative;
-      z-index: 1;
-      display: flex;
-      width: 100%;
-      height: 100%;
-      min-height: inherit;
-      flex-direction: column;
-      overflow: auto;
-      padding: clamp(16px, 2.4vw, 32px);
-    }
-
-    .game-area {
-      position: relative;
-      display: grid;
-      width: 100%;
-      min-height: 0;
-      gap: clamp(8px, 1.2vw, 16px);
-      align-content: center;
-      margin: auto;
-    }
-
-    .game-area.horizontal { grid-template-columns: minmax(0,1fr) minmax(0,1fr); }
-    .game-area.vertical { grid-template-columns: minmax(0,1fr); }
-    .game-area.random {
-      height: 100%;
-      align-content: stretch;
-      grid-template-columns: repeat(var(--cols, 2), minmax(0,1fr));
-      grid-template-rows: repeat(var(--rows, 2), minmax(0,1fr));
-      gap: clamp(5px, 1vw, 12px);
-    }
-
-    .column {
-      display: grid;
-      min-width: 0;
-      gap: clamp(7px, 1vw, 12px);
-      align-content: center;
-    }
-
-    .card {
-      display: flex;
-      width: 100%;
-      min-width: 0;
-      min-height: var(--card-height, 58px);
-      align-items: center;
-      gap: 10px;
-      overflow-wrap: anywhere;
-      padding: clamp(9px, 1.2vw, 15px);
-      border: 1px solid rgba(255,255,255,.12);
-      border-radius: 13px;
-      color: #fff;
-      background: var(--card);
-      box-shadow: 0 8px 22px rgba(0,0,0,.24), inset 0 1px rgba(255,255,255,.08);
-      text-align: left;
-      font-size: var(--card-font, clamp(14px, 1.3vw, 19px));
-      font-weight: 560;
-      line-height: 1.25;
-      cursor: pointer;
-      transition: transform .2s, box-shadow .2s, filter .2s, background .2s;
-    }
-
-    .card:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 12px 28px rgba(0,0,0,.3), inset 0 1px rgba(255,255,255,.1);
-      filter: brightness(1.08);
-    }
-
-    .card img {
-      display: block;
-      max-width: min(32%, 140px);
-      max-height: 100%;
-      flex: 0 1 auto;
-      border-radius: 7px;
-      object-fit: contain;
-    }
-
-    .card-text { min-width: 0; }
-
-    .card.selected {
-      outline: 2px solid var(--accent);
-      outline-offset: 1px;
-      box-shadow: 0 0 0 4px rgba(73,224,193,.15), 0 9px 24px rgba(0,0,0,.25);
-    }
-
-    .card.correct {
-      border-color: var(--correct);
-      color: #fff;
-      background: var(--correct);
-      transform: none;
-    }
-
-    .card.wrong {
-      border-color: var(--wrong);
-      background: var(--wrong);
-      animation: shake .3s ease;
-      transform: none;
-    }
-
-    @keyframes shake {
-      25% { translate: -5px 0; }
-      50% { translate: 5px 0; }
-      75% { translate: -3px 0; }
-    }
-
-    .message {
-      min-height: 1.5em;
-      margin: 8px 2px 0;
-      color: #fff;
-      font-size: 14px;
-      font-weight: 600;
-      text-shadow: 0 1px 4px #0008;
-    }
-
-    footer { margin-top: 12px; color: #8392a7; }
-
-    /* Прозрачное встраивание: фон и внешняя рамка не перекрывают страницу-хост. */
-    html.embed-mode,
-    html.embed-mode body,
-    html.embed-mode .container,
-    html.embed-mode .preview,
-    html.embed-mode .stage,
-    html.editor-game-mode,
-    html.editor-game-mode body,
-    html.editor-game-mode .container,
-    html.editor-game-mode .preview,
-    html.editor-game-mode .stage {
-      background: transparent !important;
-    }
-
-    .embed-mode body,
-    .editor-game-mode body {
-      min-height: 100%;
-      margin: 0;
-      padding: 0;
-      overflow: hidden;
-    }
-
-    .embed-mode .container,
-    .editor-game-mode .container {
-      display: block;
-      margin: 0;
-      padding: 0;
-    }
-
-    .embed-mode .panel,
-    .embed-mode .preview,
-    .editor-game-mode .panel,
-    .editor-game-mode .preview {
-      margin: 0 !important;
-      padding: 0 !important;
-      border: 0 !important;
-      border-radius: 0 !important;
-      background: transparent !important;
-      box-shadow: none !important;
-    }
-
-    .embed-mode .editor,
-    .embed-mode header,
-    .embed-mode footer,
-    .editor-game-mode .editor,
-    .editor-game-mode header,
-    .editor-game-mode footer {
-      display: none !important;
-    }
-
-    .embed-mode .preview,
-    .editor-game-mode .preview {
-      width: 100%;
-      height: 100dvh;
-      min-height: 100dvh;
-    }
-
-    .embed-mode .game-top,
-    .editor-game-mode .game-top {
-      min-height: 42px;
-      margin: 0;
-      padding: 8px 12px 0;
-      border: 0;
-    }
-
-    .embed-mode .stage,
-    .editor-game-mode .stage {
-      height: calc(100dvh - 42px);
-      min-height: 0;
-      overflow: hidden;
-      border: 0;
-      border-radius: 0;
-      box-shadow: none;
-    }
-
-    .embed-mode .stage-content,
-    .editor-game-mode .stage-content {
-      height: 100%;
-      min-height: 0;
-      padding: clamp(8px, 1.8vw, 24px);
-    }
-
-    .embed-mode .stage-content:has(.game-area.random),
-    .editor-game-mode .stage-content:has(.game-area.random) {
-      overflow: hidden;
-    }
-
-    @media (max-width: 900px) {
-      body { padding: 12px; }
-      .container { grid-template-columns: minmax(0,1fr); gap: 14px; }
-      .panel { padding: 18px; }
-      .editor { order: 1; }
-      .preview { order: 2; }
-      .stage { height: 68vh; min-height: 430px; }
-      .game-top { align-items: flex-start; }
-      .game-controls { gap: 8px; }
-    }
-
-    @media (max-width: 520px) {
-      header {
-        align-items: flex-start;
-        flex-direction: column;
-        gap: 4px;
-        padding: 13px 15px;
-        border-radius: 13px;
-      }
-
-      .container { gap: 12px; }
-      .panel { padding: 14px; border-radius: 14px; }
-      .setting-box { padding: 11px; }
-      .game-top { display: block; }
-      .game-controls { justify-content: flex-start; margin-top: 8px; }
-      .stage { height: 66vh; min-height: 380px; }
-      .game-area.horizontal { grid-template-columns: minmax(0,1fr) minmax(0,1fr); }
-      .card { border-radius: 10px; padding: 8px; }
-      .grid2, .grid3 { grid-template-columns: 1fr; }
-    }
-  </style>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Matching Game — Редактор</title>
+
+<style>
+:root {
+  color-scheme: dark;
+  --accent: #49e0c1;
+  --muted: #9aa9bd;
+  --card: #64123f;
+  --correct: #16834a;
+  --wrong: #d43d4f;
+  --reset: #2dd4bf;
+  --reset-text: #042022;
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+  min-height: 100%;
+  margin: 0;
+}
+
+body {
+  padding: 16px;
+  color: #edf4fb;
+  font: 15px/1.45 Inter, system-ui, -apple-system, "Segoe UI", Arial, sans-serif;
+  background:
+    radial-gradient(ellipse at 12% 0%, rgba(22,89,112,.32), transparent 38%),
+    radial-gradient(ellipse at 96% 92%, rgba(79,48,126,.22), transparent 34%),
+    linear-gradient(145deg, #07111f, #0a1728 55%, #0b1220);
+  background-attachment: fixed;
+}
+
+button, input, select, textarea { font: inherit; }
+
+header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin: 0 0 18px;
+  padding: 16px 20px;
+  border: 1px solid rgba(255,255,255,.08);
+  border-radius: 16px;
+  background: rgba(12,22,38,.68);
+  backdrop-filter: blur(16px);
+  box-shadow: 0 10px 36px rgba(0,0,0,.2);
+}
+
+h1 {
+  margin: 0;
+  font-size: clamp(20px, 2vw, 26px);
+  font-weight: 750;
+  letter-spacing: -.035em;
+}
+
+h2 {
+  margin: 0 0 15px;
+  font-size: 19px;
+  font-weight: 700;
+  letter-spacing: -.025em;
+}
+
+h3 {
+  margin: 0 0 12px;
+  color: #c4d1e1;
+  font-size: 12px;
+  letter-spacing: .09em;
+  text-transform: uppercase;
+}
+
+label, .small { color: var(--muted); }
+.small { font-size: 13px; }
+
+.container {
+  display: grid;
+  grid-template-columns: minmax(320px, 430px) minmax(0, 1fr);
+  gap: 18px;
+  align-items: stretch;
+}
+
+.panel {
+  min-width: 0;
+  padding: clamp(16px, 2vw, 24px);
+  border: 1px solid rgba(255,255,255,.09);
+  border-radius: 18px;
+  background: linear-gradient(150deg, rgba(18,31,51,.94), rgba(10,19,34,.92));
+  box-shadow: 0 18px 48px rgba(0,0,0,.28), inset 0 1px rgba(255,255,255,.035);
+  backdrop-filter: blur(18px);
+}
+
+.editor h2::after {
+  content: "";
+  display: block;
+  width: 34px;
+  height: 3px;
+  margin-top: 9px;
+  border-radius: 3px;
+  background: linear-gradient(90deg, var(--accent), transparent);
+}
+
+.field { margin: 0 0 12px; }
+
+.field > label {
+  display: block;
+  margin: 0 0 6px;
+  color: #bdc9d9;
+  font-size: 12px;
+  font-weight: 650;
+  letter-spacing: .02em;
+}
+
+textarea,
+input[type="text"],
+input[type="url"],
+input[type="number"],
+select {
+  width: 100%;
+  min-width: 0;
+  padding: 10px 12px;
+  border: 1px solid rgba(175,199,226,.17);
+  border-radius: 10px;
+  outline: none;
+  color: #f0f5fc;
+  background: rgba(4,11,21,.58);
+  transition: border-color .18s, box-shadow .18s, background .18s;
+}
+
+textarea {
+  min-height: 155px;
+  resize: vertical;
+  line-height: 1.5;
+}
+
+textarea::placeholder, input::placeholder { color: #718198; }
+
+textarea:focus,
+input[type="text"]:focus,
+input[type="url"]:focus,
+input[type="number"]:focus,
+select:focus {
+  border-color: rgba(73,224,193,.78);
+  background: rgba(4,11,21,.8);
+  box-shadow: 0 0 0 3px rgba(73,224,193,.12);
+}
+
+select option { background: #101a2b; }
+
+input[type="color"] {
+  width: 38px;
+  height: 32px;
+  padding: 2px;
+  border: 1px solid rgba(255,255,255,.2);
+  border-radius: 8px;
+  background: rgba(255,255,255,.05);
+  cursor: pointer;
+}
+
+input[type="range"] { accent-color: var(--accent); }
+
+.hint {
+  margin: 6px 0 0;
+  color: #8999ae;
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.grid2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.grid3 {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0,1fr));
+  gap: 12px;
+}
+
+.setting-box {
+  margin: 14px 0;
+  padding: 14px;
+  border: 1px solid rgba(255,255,255,.085);
+  border-radius: 13px;
+  background: rgba(4,12,23,.3);
+}
+
+.control-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.color-control {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 7px;
+  padding: 8px 10px;
+  border: 1px solid rgba(255,255,255,.055);
+  border-radius: 10px;
+  background: rgba(255,255,255,.035);
+}
+
+.color-control label,
+.color-control span {
+  color: #bdc9d9;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.actions {
+  display: flex;
+  gap: 9px;
+  flex-wrap: wrap;
+  margin: 16px 0 12px;
+}
+
+button {
+  padding: 9px 13px;
+  border: 1px solid rgba(196,215,237,.18);
+  border-radius: 10px;
+  color: #eaf2fb;
+  background: rgba(255,255,255,.055);
+  font-size: 13px;
+  font-weight: 650;
+  cursor: pointer;
+  transition: transform .18s, border-color .18s, background .18s, box-shadow .18s;
+}
+
+button:hover {
+  border-color: rgba(73,224,193,.5);
+  background: rgba(73,224,193,.09);
+  box-shadow: 0 5px 16px rgba(0,0,0,.18);
+}
+
+button:active { transform: translateY(1px); }
+
+button.primary {
+  border: 0;
+  color: #06231e;
+  background: linear-gradient(135deg, #55e3c4, #29c3a6);
+  box-shadow: 0 7px 20px rgba(41,195,166,.16);
+}
+
+button.primary:hover {
+  background: linear-gradient(135deg, #70efd2, #36d0b2);
+}
+
+#resetBtn {
+  border-color: var(--reset);
+  color: var(--reset-text);
+  background: var(--reset);
+}
+
+#resetBtn:hover { filter: brightness(1.12); }
+
+.output textarea {
+  min-height: 86px;
+  color: #c8d7e7;
+  background: rgba(3,10,19,.72);
+  font: 12px/1.4 ui-monospace, SFMono-Regular, Consolas, monospace;
+}
+
+.preview {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+}
+
+.game-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 14px;
+  padding: 2px 2px 13px;
+  border-bottom: 1px solid rgba(255,255,255,.08);
+}
+
+.game-top h2 { margin: 0; font-size: 18px; }
+
+.game-controls {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.stat {
+  padding: 7px 10px;
+  border: 1px solid rgba(255,255,255,.06);
+  border-radius: 9px;
+  color: #c2cede;
+  background: rgba(255,255,255,.045);
+  font-size: 13px;
+  white-space: nowrap;
+}
+
+.stat b { margin-left: 3px; color: #f2f7fc; }
+
+.stage {
+  position: relative;
+  isolation: isolate;
+  flex: 1;
+  height: min(76vh, 820px);
+  min-height: 520px;
+  overflow: hidden;
+  border: 1px solid rgba(255,255,255,.09);
+  border-radius: 15px;
+  background: rgba(3,9,17,.16);
+  box-shadow: inset 0 1px rgba(255,255,255,.04);
+}
+
+.stage-bg {
+  position: absolute;
+  inset: -32px;
+  z-index: -1;
+  overflow: hidden;
+  border-radius: inherit;
+  pointer-events: none;
+  background: transparent;
+  will-change: filter, transform;
+}
+
+.stage-bg::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  pointer-events: none;
+  background:
+    repeating-linear-gradient(0deg, transparent 0 12px, #00e5ff20 12px 14px, transparent 14px 25px),
+    linear-gradient(90deg, #ff00a020, #00e5ff18, #ff00a020);
+  mix-blend-mode: screen;
+}
+
+.stage-bg.glitch::after {
+  opacity: var(--glitch-opacity, .14);
+  animation: glitchBg .35s steps(2, end) infinite;
+}
+
+.stage-bg.glitch.strong::after {
+  opacity: var(--glitch-opacity, .24);
+  animation-duration: .16s;
+}
+
+@keyframes glitchBg {
+  0% { transform: translate(0,0); clip-path: inset(0 0 84% 0); }
+  25% { transform: translate(5px,-2px); clip-path: inset(28% 0 50% 0); }
+  50% { transform: translate(-4px,1px); clip-path: inset(61% 0 21% 0); }
+  75% { transform: translate(2px,0); clip-path: inset(82% 0 5% 0); }
+  100% { transform: none; clip-path: inset(0); }
+}
+
+@keyframes blurPulse {
+  0%, 100% { filter: blur(0); }
+  50% { filter: blur(var(--blur-max, 6px)); }
+}
+
+.stage-bg.animated-blur {
+  animation: blurPulse var(--blur-duration, 4s) ease-in-out infinite;
+}
+
+.stage-content {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  flex-direction: column;
+  overflow: auto;
+  padding: clamp(16px, 2.4vw, 32px);
+}
+
+.game-area {
+  position: relative;
+  display: grid;
+  width: 100%;
+  min-height: 0;
+  gap: clamp(8px, 1.2vw, 16px);
+  align-content: center;
+  margin: auto;
+}
+
+.game-area.horizontal {
+  grid-template-columns: minmax(0,1fr) minmax(0,1fr);
+}
+
+.game-area.vertical {
+  grid-template-columns: minmax(0,1fr);
+}
+
+.game-area.random {
+  flex: 1 1 auto;
+  height: auto;
+  min-height: 0;
+  align-content: stretch;
+  grid-template-columns: repeat(var(--cols, 2), minmax(0,1fr));
+  grid-template-rows: repeat(var(--rows, 2), minmax(0,1fr));
+  gap: clamp(5px, 1vw, 12px);
+}
+
+.column {
+  display: grid;
+  min-width: 0;
+  gap: clamp(7px, 1vw, 12px);
+  align-content: center;
+}
+
+.card {
+  display: flex;
+  width: 100%;
+  min-width: 0;
+  min-height: var(--card-height, 58px);
+  align-items: center;
+  gap: 10px;
+  overflow-wrap: anywhere;
+  padding: clamp(9px, 1.2vw, 15px);
+  border: 1px solid rgba(255,255,255,.12);
+  border-radius: 13px;
+  color: #fff;
+  background: var(--card);
+  box-shadow: 0 8px 22px rgba(0,0,0,.24), inset 0 1px rgba(255,255,255,.08);
+  text-align: left;
+  font-size: var(--card-font, clamp(14px, 1.3vw, 19px));
+  font-weight: 560;
+  line-height: 1.25;
+  cursor: pointer;
+  transition: transform .2s, box-shadow .2s, filter .2s, background .2s;
+}
+
+.card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 28px rgba(0,0,0,.3);
+  filter: brightness(1.08);
+}
+
+.card img {
+  display: block;
+  max-width: min(32%, 140px);
+  max-height: 100%;
+  flex: 0 1 auto;
+  border-radius: 7px;
+  object-fit: contain;
+}
+
+.card-text { min-width: 0; }
+
+.card.selected {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+
+.card.correct {
+  border-color: var(--correct);
+  color: #fff;
+  background: var(--correct);
+}
+
+.card.wrong {
+  border-color: var(--wrong);
+  background: var(--wrong);
+  animation: shake .3s ease;
+}
+
+@keyframes shake {
+  25% { translate: -5px 0; }
+  50% { translate: 5px 0; }
+  75% { translate: -3px 0; }
+}
+
+.message {
+  flex: 0 0 auto;
+  min-height: 1.5em;
+  margin: 8px 2px 0;
+  color: #fff;
+  font-size: 14px;
+  font-weight: 600;
+  text-shadow: 0 1px 4px #0008;
+}
+
+footer { margin-top: 12px; color: #8392a7; }
+
+/* Embed: toolbar is transparent and takes its real height.
+   The board gets the remaining height, so it cannot slide underneath the toolbar. */
+.embed-mode body,
+.embed-mode .container,
+.embed-mode .preview,
+.embed-mode .game-top,
+.embed-mode .stage,
+.editor-game-mode body,
+.editor-game-mode .container,
+.editor-game-mode .preview,
+.editor-game-mode .game-top,
+.editor-game-mode .stage {
+  background: transparent !important;
+}
+
+.embed-mode body,
+.editor-game-mode body {
+  min-height: 100%;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+}
+
+.embed-mode .container,
+.editor-game-mode .container {
+  display: block;
+  height: 100dvh;
+  margin: 0;
+  padding: 0;
+}
+
+.embed-mode .panel,
+.embed-mode .preview,
+.editor-game-mode .panel,
+.editor-game-mode .preview {
+  margin: 0 !important;
+  padding: 0 !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  backdrop-filter: none;
+}
+
+.embed-mode .editor,
+.embed-mode header,
+.embed-mode footer,
+.editor-game-mode .editor,
+.editor-game-mode header,
+.editor-game-mode footer {
+  display: none !important;
+}
+
+.embed-mode .preview,
+.editor-game-mode .preview {
+  display: flex;
+  width: 100%;
+  height: 100dvh;
+  min-height: 0;
+  flex-direction: column;
+}
+
+.embed-mode .game-top,
+.editor-game-mode .game-top {
+  position: relative;
+  z-index: 2;
+  flex: 0 0 auto;
+  min-height: 0;
+  margin: 0;
+  padding: 10px 14px 12px;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  backdrop-filter: none;
+}
+
+.embed-mode .stage,
+.editor-game-mode .stage {
+  position: relative;
+  flex: 1 1 auto;
+  width: 100%;
+  height: auto;
+  min-height: 0;
+  margin: 0;
+  overflow: hidden;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+}
+
+.embed-mode .stage-content,
+.editor-game-mode .stage-content {
+  height: 100%;
+  min-height: 0;
+  padding: clamp(8px, 1.8vw, 24px);
+}
+
+.embed-mode .stage-content:has(.game-area.random),
+.editor-game-mode .stage-content:has(.game-area.random) {
+  overflow: hidden;
+}
+
+@media (max-width: 900px) {
+  body { padding: 12px; }
+  .container { grid-template-columns: minmax(0,1fr); gap: 14px; }
+  .panel { padding: 18px; }
+  .editor { order: 1; }
+  .preview { order: 2; }
+  .stage { height: 68vh; min-height: 430px; }
+  .game-top { align-items: flex-start; }
+  .game-controls { gap: 8px; }
+}
+
+@media (max-width: 520px) {
+  header {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 4px;
+    padding: 13px 15px;
+  }
+
+  .container { gap: 12px; }
+  .panel { padding: 14px; }
+  .setting-box { padding: 11px; }
+  .game-top { display: block; }
+  .game-controls { justify-content: flex-start; margin-top: 8px; }
+  .stage { height: 66vh; min-height: 380px; }
+  .game-area.horizontal { grid-template-columns: minmax(0,1fr) minmax(0,1fr); }
+  .card { border-radius: 10px; padding: 8px; }
+  .grid2, .grid3 { grid-template-columns: 1fr; }
+}
+</style>
 </head>
 
 <body>
-  <header>
-    <h1 id="titleText">Matching Game — Редактор</h1>
-    <div class="small" id="subtitleText">Создайте пары и настройте игру</div>
-  </header>
+<header>
+  <h1 id="titleText">Matching Game — Редактор</h1>
+  <div class="small" id="subtitleText">Создайте пары и настройте игру</div>
+</header>
 
-  <main class="container" id="appRoot">
-    <section class="panel editor" id="editorPanel">
-      <h2>Редактор игры</h2>
+<main class="container" id="appRoot">
+  <section class="panel editor" id="editorPanel">
+    <h2>Редактор игры</h2>
 
+    <div class="field">
+      <label for="langSelect">Язык обратной связи</label>
+      <select id="langSelect">
+        <option value="ru">Русский</option>
+        <option value="en">English</option>
+      </select>
+    </div>
+
+    <div class="field">
+      <label for="pairsInput">Пары — одна на строку, разделитель только вертикальная черта |</label>
+      <textarea id="pairsInput" placeholder="Предложение, с запятыми | Ответ, тоже с запятыми&#10;Сладкий вкус | Sweet"></textarea>
+      <div class="hint">Разделяйте левую и правую часть только символом |. Запятые, дефисы и двоеточия внутри текста допустимы.</div>
+    </div>
+
+    <div class="grid2">
       <div class="field">
-        <label for="langSelect">Язык обратной связи</label>
-        <select id="langSelect">
-          <option value="ru">Русский</option>
-          <option value="en">English</option>
+        <label for="layoutSelect">Расположение карточек</label>
+        <select id="layoutSelect">
+          <option value="horizontal">Горизонтально — две колонки</option>
+          <option value="vertical">Вертикально — стороны одна под другой</option>
+          <option value="random">Случайно разбросать по полю</option>
         </select>
       </div>
-
       <div class="field">
-        <label for="pairsInput">Пары — одна на строку, разделитель только вертикальная черта |</label>
-        <textarea id="pairsInput" placeholder="Предложение, с запятыми | Ответ, тоже с запятыми&#10;Сладкий вкус | Sweet"></textarea>
-        <div class="hint">Разделяйте левую и правую часть только символом |. Запятые, дефисы и двоеточия внутри текста допустимы.</div>
+        <label for="previewH">Высота превью, px</label>
+        <input id="previewH" type="number" min="300" max="1200" value="620">
       </div>
+    </div>
+
+    <div class="setting-box">
+      <h3>Фон игрового поля</h3>
 
       <div class="grid2">
         <div class="field">
-          <label for="layoutSelect">Расположение карточек</label>
-          <select id="layoutSelect">
-            <option value="horizontal">Горизонтально — две колонки</option>
-            <option value="vertical">Вертикально — стороны одна под другой</option>
-            <option value="random">Случайно разбросать по полю</option>
+          <label for="bgType">Тип фона</label>
+          <select id="bgType">
+            <option value="transparent">Прозрачный</option>
+            <option value="solid">Сплошной цвет</option>
+            <option value="gradient">Градиент</option>
+            <option value="image">Изображение по ссылке</option>
           </select>
         </div>
         <div class="field">
-          <label for="previewH">Высота превью, px</label>
-          <input id="previewH" type="number" min="300" max="1200" value="620">
+          <label for="bgSolid">Цвет фона</label>
+          <input id="bgSolid" type="color" value="#071427">
         </div>
       </div>
 
-      <div class="setting-box">
-        <h3>Фон игрового поля</h3>
-
-        <div class="grid2">
-          <div class="field">
-            <label for="bgType">Тип фона</label>
-            <select id="bgType">
-              <option value="transparent">Прозрачный</option>
-              <option value="solid">Сплошной цвет</option>
-              <option value="gradient">Градиент</option>
-              <option value="image">Изображение по ссылке</option>
-            </select>
-          </div>
-          <div class="field">
-            <label for="bgSolid">Цвет фона</label>
-            <input id="bgSolid" type="color" value="#071427">
-          </div>
+      <div id="gradientControls" class="grid3" hidden>
+        <div class="field">
+          <label for="g1">Цвет градиента 1</label>
+          <input id="g1" type="color" value="#071427">
         </div>
-
-        <div id="gradientControls" class="grid3" hidden>
-          <div class="field">
-            <label for="g1">Цвет градиента 1</label>
-            <input id="g1" type="color" value="#071427">
-          </div>
-          <div class="field">
-            <label for="g2">Цвет градиента 2</label>
-            <input id="g2" type="color" value="#0b2540">
-          </div>
-          <div class="field">
-            <label for="g3">Цвет градиента 3</label>
-            <input id="g3" type="color" value="#412060">
-          </div>
-          <div class="field">
-            <label for="gDir">Направление</label>
-            <select id="gDir">
-              <option value="to right">Слева направо</option>
-              <option value="to bottom">Сверху вниз</option>
-              <option value="45deg">45°</option>
-              <option value="135deg">135°</option>
-            </select>
-          </div>
+        <div class="field">
+          <label for="g2">Цвет градиента 2</label>
+          <input id="g2" type="color" value="#0b2540">
         </div>
-
-        <div id="imageControls" class="field" hidden>
-          <label for="bgImageUrl">Ссылка на фоновое изображение</label>
-          <input id="bgImageUrl" type="url" placeholder="https://...">
+        <div class="field">
+          <label for="g3">Цвет градиента 3</label>
+          <input id="g3" type="color" value="#412060">
         </div>
-
-        <div class="control-row" style="margin-top:8px">
-          <label class="color-control">
-            <input id="blurRange" type="range" min="0" max="30" value="0">
-            <span>Размытие: <b id="blurVal">0</b> px</span>
-          </label>
-          <label class="color-control">
-            <input id="blurAnim" type="checkbox">
-            <span>Анимировать размытие</span>
-          </label>
-          <label class="color-control">
-            Длительность
-            <input id="blurAnimDur" type="number" min="1" max="20" value="4" style="width:70px">
-            сек
-          </label>
-        </div>
-
-        <div class="control-row" style="margin-top:9px">
-          <label for="glitchMode">Глитч</label>
-          <select id="glitchMode" style="width:auto">
-            <option value="none">Выключен</option>
-            <option value="soft">Лёгкий</option>
-            <option value="strong">Сильный</option>
+        <div class="field">
+          <label for="gDir">Направление</label>
+          <select id="gDir">
+            <option value="to right">Слева направо</option>
+            <option value="to bottom">Сверху вниз</option>
+            <option value="45deg">45°</option>
+            <option value="135deg">135°</option>
           </select>
-          <label for="glitchIntensity">Интенсивность</label>
-          <input id="glitchIntensity" type="range" min="1" max="10" value="4" style="max-width:160px">
         </div>
       </div>
 
-      <div class="setting-box">
-        <h3>Цвета</h3>
-        <div class="grid2">
-          <div class="color-control">
-            <label for="cardColor">Плашки</label>
-            <input id="cardColor" type="color" value="#64123f">
-          </div>
-          <div class="color-control">
-            <label for="correctColor">Правильный ответ</label>
-            <input id="correctColor" type="color" value="#16834a">
-          </div>
-          <div class="color-control">
-            <label for="wrongColor">Неправильный ответ</label>
-            <input id="wrongColor" type="color" value="#d43d4f">
-          </div>
-          <div class="color-control">
-            <label for="resetColor">Кнопка Reset</label>
-            <input id="resetColor" type="color" value="#2dd4bf">
-          </div>
-        </div>
+      <div id="imageControls" class="field" hidden>
+        <label for="bgImageUrl">Ссылка на фоновое изображение</label>
+        <input id="bgImageUrl" type="url" placeholder="https://...">
       </div>
 
-      <div class="setting-box">
-        <h3>Тексты обратной связи</h3>
-        <div class="field">
-          <label for="fbCorrect">Верный ответ</label>
-          <input id="fbCorrect" type="text">
-        </div>
-        <div class="field">
-          <label for="fbWrong">Неверный ответ</label>
-          <input id="fbWrong" type="text">
-        </div>
-        <div class="field" style="margin-bottom:0">
-          <label for="fbFinished">Все пары найдены</label>
-          <input id="fbFinished" type="text">
-        </div>
-        <div class="hint">При смене языка стандартные сообщения обновятся автоматически. Если изменить текст вручную, он сохранится.</div>
+      <div class="control-row" style="margin-top:8px">
+        <label class="color-control">
+          <input id="blurRange" type="range" min="0" max="30" value="0">
+          <span>Размытие: <b id="blurVal">0</b> px</span>
+        </label>
+        <label class="color-control">
+          <input id="blurAnim" type="checkbox">
+          <span>Анимировать размытие</span>
+        </label>
+        <label class="color-control">
+          Длительность
+          <input id="blurAnimDur" type="number" min="1" max="20" value="4" style="width:70px">
+          сек
+        </label>
       </div>
 
-      <div class="actions">
-        <button id="previewBtn" class="primary">Обновить превью</button>
-        <button id="generateBtn">Сгенерировать iframe</button>
-        <button id="startBtn">Открыть игру отдельно</button>
-        <button id="clearBtn">Очистить пары</button>
+      <div class="control-row" style="margin-top:9px">
+        <label for="glitchMode">Глитч</label>
+        <select id="glitchMode" style="width:auto">
+          <option value="none">Выключен</option>
+          <option value="soft">Лёгкий</option>
+          <option value="strong">Сильный</option>
+        </select>
+        <label for="glitchIntensity">Интенсивность</label>
+        <input id="glitchIntensity" type="range" min="1" max="10" value="4" style="max-width:160px">
       </div>
+    </div>
 
-      <div class="field output">
-        <label for="embedCode">Код для встраивания</label>
-        <textarea id="embedCode" readonly placeholder="Нажмите «Сгенерировать iframe»"></textarea>
-        <button id="copyBtn" type="button" style="margin-top:7px">Скопировать код</button>
-      </div>
-    </section>
-
-    <section class="panel preview" id="previewPanel">
-      <div class="game-top">
-        <div>
-          <h2 id="previewTitle">Предпросмотр игры</h2>
-          <div class="small" id="previewHint">Выберите карточку слева и соответствующую карточку справа.</div>
+    <div class="setting-box">
+      <h3>Цвета</h3>
+      <div class="grid2">
+        <div class="color-control">
+          <label for="cardColor">Плашки</label>
+          <input id="cardColor" type="color" value="#64123f">
         </div>
-        <div class="game-controls">
-          <span class="stat">Осталось: <b id="leftCount">0</b></span>
-          <span class="stat">Успехи: <b id="score">0</b></span>
-          <button id="resetBtn" type="button">Reset</button>
-          <button id="fullscreenBtn" type="button">Открыть на весь экран</button>
+        <div class="color-control">
+          <label for="correctColor">Правильный ответ</label>
+          <input id="correctColor" type="color" value="#16834a">
         </div>
-      </div>
-
-      <div id="stage" class="stage">
-        <div id="stageBg" class="stage-bg"></div>
-        <div id="stageContent" class="stage-content">
-          <div id="gameArea" class="game-area">
-            <div id="colLeft" class="column"></div>
-            <div id="colRight" class="column"></div>
-          </div>
-          <div id="message" class="message" aria-live="polite"></div>
+        <div class="color-control">
+          <label for="wrongColor">Неправильный ответ</label>
+          <input id="wrongColor" type="color" value="#d43d4f">
+        </div>
+        <div class="color-control">
+          <label for="resetColor">Кнопка Reset</label>
+          <input id="resetColor" type="color" value="#2dd4bf">
         </div>
       </div>
-    </section>
-  </main>
+    </div>
 
-  <footer class="small">Разместите страницу на GitHub Pages и используйте сгенерированный iframe для встраивания игры.</footer>
+    <div class="setting-box">
+      <h3>Тексты обратной связи</h3>
+      <div class="field">
+        <label for="fbCorrect">Верный ответ</label>
+        <input id="fbCorrect" type="text">
+      </div>
+      <div class="field">
+        <label for="fbWrong">Неверный ответ</label>
+        <input id="fbWrong" type="text">
+      </div>
+      <div class="field" style="margin-bottom:0">
+        <label for="fbFinished">Все пары найдены</label>
+        <input id="fbFinished" type="text">
+      </div>
+      <div class="hint">При смене языка стандартные сообщения обновятся автоматически. Если изменить текст вручную, он сохранится.</div>
+    </div>
 
-  <script>
-    "use strict";
+    <div class="actions">
+      <button id="previewBtn" class="primary">Обновить превью</button>
+      <button id="generateBtn">Сгенерировать iframe</button>
+      <button id="startBtn">Открыть игру отдельно</button>
+      <button id="clearBtn">Очистить пары</button>
+    </div>
 
-    const LOCALES = {
-      ru: {
-        correct: "Правильно!",
-        wrong: "Попробуйте ещё раз.",
-        finished: "Поздравляем! Все пары найдены.",
-        title: "Matching Game — Редактор",
-        subtitle: "Создайте пары и настройте игру",
-        preview: "Предпросмотр игры",
-        hint: "Выберите карточку слева и соответствующую карточку справа."
-      },
-      en: {
-        correct: "Correct!",
-        wrong: "Try again.",
-        finished: "Congratulations! All pairs matched.",
-        title: "Matching Game — Editor",
-        subtitle: "Create pairs and customize the game",
-        preview: "Preview / Game",
-        hint: "Select a card from one side, then its matching card."
-      }
+    <div class="field output">
+      <label for="embedCode">Код для встраивания</label>
+      <textarea id="embedCode" readonly placeholder="Нажмите «Сгенерировать iframe»"></textarea>
+      <button id="copyBtn" type="button" style="margin-top:7px">Скопировать код</button>
+    </div>
+  </section>
+
+  <section class="panel preview" id="previewPanel">
+    <div class="game-top">
+      <div>
+        <h2 id="previewTitle">Предпросмотр игры</h2>
+        <div class="small" id="previewHint">Выберите карточку слева и соответствующую карточку справа.</div>
+      </div>
+      <div class="game-controls">
+        <span class="stat">Осталось: <b id="leftCount">0</b></span>
+        <span class="stat">Успехи: <b id="score">0</b></span>
+        <button id="resetBtn" type="button">Reset</button>
+        <button id="fullscreenBtn" type="button">Открыть на весь экран</button>
+      </div>
+    </div>
+
+    <div id="stage" class="stage">
+      <div id="stageBg" class="stage-bg"></div>
+      <div id="stageContent" class="stage-content">
+        <div id="gameArea" class="game-area">
+          <div id="colLeft" class="column"></div>
+          <div id="colRight" class="column"></div>
+        </div>
+        <div id="message" class="message" aria-live="polite"></div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer class="small">Разместите страницу на GitHub Pages и используйте сгенерированный iframe для встраивания игры.</footer>
+
+<script>
+"use strict";
+
+const LOCALES = {
+  ru: {
+    correct: "Правильно!",
+    wrong: "Попробуйте ещё раз.",
+    finished: "Поздравляем! Все пары найдены.",
+    title: "Matching Game — Редактор",
+    subtitle: "Создайте пары и настройте игру",
+    preview: "Предпросмотр игры",
+    hint: "Выберите карточку слева и соответствующую карточку справа."
+  },
+  en: {
+    correct: "Correct!",
+    wrong: "Try again.",
+    finished: "Congratulations! All pairs matched.",
+    title: "Matching Game — Editor",
+    subtitle: "Create pairs and customize the game",
+    preview: "Preview / Game",
+    hint: "Select a card from one side, then its matching card."
+  }
+};
+
+const $ = id => document.getElementById(id);
+
+const ui = {
+  pairs: $("pairsInput"),
+  lang: $("langSelect"),
+  layout: $("layoutSelect"),
+  previewHeight: $("previewH"),
+  bgType: $("bgType"),
+  bgSolid: $("bgSolid"),
+  g1: $("g1"),
+  g2: $("g2"),
+  g3: $("g3"),
+  gDir: $("gDir"),
+  bgUrl: $("bgImageUrl"),
+  gradientControls: $("gradientControls"),
+  imageControls: $("imageControls"),
+  blur: $("blurRange"),
+  blurValue: $("blurVal"),
+  blurAnim: $("blurAnim"),
+  blurDuration: $("blurAnimDur"),
+  glitch: $("glitchMode"),
+  glitchIntensity: $("glitchIntensity"),
+  cardColor: $("cardColor"),
+  correctColor: $("correctColor"),
+  wrongColor: $("wrongColor"),
+  resetColor: $("resetColor"),
+  feedbackCorrect: $("fbCorrect"),
+  feedbackWrong: $("fbWrong"),
+  feedbackFinished: $("fbFinished"),
+  stage: $("stage"),
+  stageBg: $("stageBg"),
+  stageContent: $("stageContent"),
+  gameArea: $("gameArea"),
+  leftColumn: $("colLeft"),
+  rightColumn: $("colRight"),
+  message: $("message"),
+  remaining: $("leftCount"),
+  score: $("score"),
+  embedCode: $("embedCode")
+};
+
+let language = "ru";
+const editedFeedback = { correct: false, wrong: false, finished: false };
+
+let game = {
+  pairs: [],
+  left: [],
+  right: [],
+  selected: null,
+  matched: new Set(),
+  randomItems: [],
+  score: 0
+};
+
+function t(key) {
+  return LOCALES[language]?.[key] || key;
+}
+
+function parsePairs(text) {
+  return text
+    .split(/\r?\n/)
+    .map(line => {
+      const separatorIndex = line.indexOf("|");
+      if (separatorIndex < 0) return null;
+
+      const left = line.slice(0, separatorIndex).trim();
+      const right = line.slice(separatorIndex + 1).trim();
+
+      return left && right ? { left, right } : null;
+    })
+    .filter(Boolean);
+}
+
+function isImageUrl(value) {
+  try {
+    const url = new URL(value, location.href);
+    return /\.(png|jpe?g|gif|webp|svg|avif)$/i.test(url.pathname) ||
+      value.startsWith("data:image/");
+  } catch {
+    return false;
+  }
+}
+
+function shuffle(items) {
+  const result = items.slice();
+
+  for (let i = result.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [result[i], result[j]] = [result[j], result[i]];
+  }
+
+  return result;
+}
+
+function encodeConfig(config) {
+  const bytes = new TextEncoder().encode(JSON.stringify(config));
+  let binary = "";
+
+  bytes.forEach(byte => binary += String.fromCharCode(byte));
+  return btoa(binary);
+}
+
+function decodeConfig(token) {
+  try {
+    const binary = atob(token);
+    const bytes = Uint8Array.from(binary, char => char.charCodeAt(0));
+    return JSON.parse(new TextDecoder().decode(bytes));
+  } catch {
+    return null;
+  }
+}
+
+function textColorFor(hex) {
+  const value = hex.replace("#", "");
+  const full = value.length === 3
+    ? value.split("").map(char => char + char).join("")
+    : value;
+  const number = parseInt(full, 16);
+  const red = number >> 16 & 255;
+  const green = number >> 8 & 255;
+  const blue = number & 255;
+  const brightness = (red * 299 + green * 587 + blue * 114) / 1000;
+
+  return brightness > 145 ? "#102018" : "#ffffff";
+}
+
+function applyColors() {
+  document.documentElement.style.setProperty("--card", ui.cardColor.value);
+  document.documentElement.style.setProperty("--correct", ui.correctColor.value);
+  document.documentElement.style.setProperty("--wrong", ui.wrongColor.value);
+  document.documentElement.style.setProperty("--reset", ui.resetColor.value);
+  document.documentElement.style.setProperty("--reset-text", textColorFor(ui.resetColor.value));
+}
+
+function readBackgroundSettings() {
+  return {
+    type: ui.bgType.value,
+    solid: ui.bgSolid.value,
+    gradient: {
+      g1: ui.g1.value,
+      g2: ui.g2.value,
+      g3: ui.g3.value,
+      direction: ui.gDir.value
+    },
+    imageUrl: ui.bgUrl.value,
+    blur: Number(ui.blur.value) || 0,
+    blurAnimated: ui.blurAnim.checked,
+    blurDuration: Number(ui.blurDuration.value) || 4,
+    glitch: ui.glitch.value,
+    glitchIntensity: Number(ui.glitchIntensity.value) || 4
+  };
+}
+
+function applyBackground() {
+  const bg = ui.stageBg;
+  const settings = readBackgroundSettings();
+
+  bg.className = "stage-bg";
+  bg.style.background = "transparent";
+  bg.style.filter = "";
+  bg.style.setProperty("--blur-max", settings.blur + "px");
+  bg.style.setProperty("--blur-duration", settings.blurDuration + "s");
+  bg.style.setProperty(
+    "--glitch-opacity",
+    String(settings.glitchIntensity / 10 * (settings.glitch === "strong" ? .32 : .2))
+  );
+
+  if (settings.type === "solid") {
+    bg.style.background = settings.solid;
+  } else if (settings.type === "gradient") {
+    bg.style.background =
+      `linear-gradient(${settings.gradient.direction}, ${settings.gradient.g1}, ${settings.gradient.g2}, ${settings.gradient.g3})`;
+  } else if (settings.type === "image" && settings.imageUrl) {
+    const safeUrl = settings.imageUrl.replace(/["\\]/g, "");
+    bg.style.background = `url("${safeUrl}") center / cover no-repeat`;
+  }
+
+  if (settings.blur > 0) {
+    if (settings.blurAnimated) {
+      bg.classList.add("animated-blur");
+    } else {
+      bg.style.filter = `blur(${settings.blur}px)`;
+    }
+  }
+
+  if (settings.glitch !== "none") {
+    bg.classList.add("glitch", settings.glitch);
+  }
+}
+
+function makeCard(item, side) {
+  const card = document.createElement("button");
+  card.type = "button";
+  card.className = "card";
+  card.dataset.id = item.id;
+  card.dataset.side = side;
+  card.setAttribute("aria-pressed", "false");
+
+  if (item.isImage) {
+    const image = document.createElement("img");
+    image.src = item.value;
+    image.alt = item.alt || item.value;
+    image.loading = "lazy";
+
+    image.onerror = () => {
+      image.remove();
+      const fallback = document.createElement("span");
+      fallback.className = "card-text";
+      fallback.textContent = item.value;
+      card.append(fallback);
     };
 
-    const $ = id => document.getElementById(id);
+    card.append(image);
+  } else {
+    const span = document.createElement("span");
+    span.className = "card-text";
+    span.textContent = item.value;
+    card.append(span);
+  }
 
-    const ui = {
-      pairs: $("pairsInput"),
-      lang: $("langSelect"),
-      layout: $("layoutSelect"),
-      previewHeight: $("previewH"),
-      bgType: $("bgType"),
-      bgSolid: $("bgSolid"),
-      g1: $("g1"),
-      g2: $("g2"),
-      g3: $("g3"),
-      gDir: $("gDir"),
-      bgUrl: $("bgImageUrl"),
-      gradientControls: $("gradientControls"),
-      imageControls: $("imageControls"),
-      blur: $("blurRange"),
-      blurValue: $("blurVal"),
-      blurAnim: $("blurAnim"),
-      blurDuration: $("blurAnimDur"),
-      glitch: $("glitchMode"),
-      glitchIntensity: $("glitchIntensity"),
-      cardColor: $("cardColor"),
-      correctColor: $("correctColor"),
-      wrongColor: $("wrongColor"),
-      resetColor: $("resetColor"),
-      feedbackCorrect: $("fbCorrect"),
-      feedbackWrong: $("fbWrong"),
-      feedbackFinished: $("fbFinished"),
-      stage: $("stage"),
-      stageBg: $("stageBg"),
-      stageContent: $("stageContent"),
-      gameArea: $("gameArea"),
-      leftColumn: $("colLeft"),
-      rightColumn: $("colRight"),
-      message: $("message"),
-      remaining: $("leftCount"),
-      score: $("score"),
-      embedCode: $("embedCode")
-    };
+  card.addEventListener("click", () => chooseCard(card));
+  return card;
+}
 
-    let language = "ru";
-    const editedFeedback = { correct: false, wrong: false, finished: false };
+function startGame(pairs) {
+  game.pairs = pairs.map((pair, index) => ({
+    id: String(index),
+    left: pair.left,
+    right: pair.right
+  }));
 
-    let game = {
-      pairs: [],
-      left: [],
-      right: [],
-      selected: null,
-      matched: new Set(),
-      randomItems: [],
-      score: 0
-    };
+  game.left = shuffle(game.pairs.map(pair => ({
+    id: pair.id,
+    value: pair.left,
+    isImage: isImageUrl(pair.left)
+  })));
 
-    function t(key) {
-      return LOCALES[language]?.[key] || key;
+  game.right = shuffle(game.pairs.map(pair => ({
+    id: pair.id,
+    value: pair.right,
+    isImage: isImageUrl(pair.right)
+  })));
+
+  game.matched = new Set();
+  game.selected = null;
+  game.score = 0;
+  game.randomItems = shuffle([
+    ...game.left.map(item => ({ ...item, side: "left" })),
+    ...game.right.map(item => ({ ...item, side: "right" }))
+  ]);
+
+  renderGame();
+}
+
+function clearCards() {
+  ui.leftColumn.replaceChildren();
+  ui.rightColumn.replaceChildren();
+  ui.gameArea.querySelectorAll(".random-card").forEach(card => card.remove());
+}
+
+function renderGame() {
+  applyColors();
+  applyBackground();
+  clearCards();
+
+  ui.remaining.textContent = String(game.pairs.length - game.matched.size);
+  ui.score.textContent = String(game.score);
+  ui.message.textContent = "";
+
+  const layout = ui.layout.value;
+  ui.gameArea.className = "game-area " + layout;
+  ui.gameArea.style.removeProperty("--cols");
+  ui.gameArea.style.removeProperty("--rows");
+  ui.leftColumn.hidden = false;
+  ui.rightColumn.hidden = false;
+
+  if (layout === "random") {
+    ui.leftColumn.hidden = true;
+    ui.rightColumn.hidden = true;
+    ui.stageContent.style.overflow = "hidden";
+
+    const items = game.randomItems.filter(item => !game.matched.has(item.id));
+    const rect = ui.stageContent.getBoundingClientRect();
+    const count = items.length;
+
+    /* Оставляем запас под внутренние отступы и сообщение под карточками. */
+    const availableWidth = Math.max(240, rect.width - 48);
+    const availableHeight = Math.max(180, rect.height - 90);
+
+    let columns = Math.max(
+      1,
+      Math.ceil(Math.sqrt(count * (availableWidth / availableHeight)))
+    );
+
+    columns = Math.min(columns, Math.max(1, count));
+    let rows = Math.ceil(count / columns);
+
+    while (rows > 1 && availableHeight / rows < 62 && columns < count) {
+      columns++;
+      rows = Math.ceil(count / columns);
     }
 
-    function parsePairs(text) {
-      return text
-        .split(/\r?\n/)
-        .map(line => {
-          const separatorIndex = line.indexOf("|");
-          if (separatorIndex < 0) return null;
-
-          const left = line.slice(0, separatorIndex).trim();
-          const right = line.slice(separatorIndex + 1).trim();
-
-          return left && right ? { left, right } : null;
-        })
-        .filter(Boolean);
-    }
-
-    function isImageUrl(value) {
-      try {
-        const url = new URL(value, location.href);
-        return /\.(png|jpe?g|gif|webp|svg|avif)$/i.test(url.pathname) ||
-          value.startsWith("data:image/");
-      } catch {
-        return false;
-      }
-    }
-
-    function shuffle(items) {
-      const result = items.slice();
-      for (let i = result.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [result[i], result[j]] = [result[j], result[i]];
-      }
-      return result;
-    }
-
-    function encodeConfig(config) {
-      const bytes = new TextEncoder().encode(JSON.stringify(config));
-      let binary = "";
-      bytes.forEach(byte => binary += String.fromCharCode(byte));
-      return btoa(binary);
-    }
-
-    function decodeConfig(token) {
-      try {
-        const binary = atob(token);
-        const bytes = Uint8Array.from(binary, char => char.charCodeAt(0));
-        return JSON.parse(new TextDecoder().decode(bytes));
-      } catch {
-        return null;
-      }
-    }
-
-    function textColorFor(hex) {
-      const value = hex.replace("#", "");
-      const full = value.length === 3 ? value.split("").map(x => x + x).join("") : value;
-      const number = parseInt(full, 16);
-      const r = number >> 16 & 255;
-      const g = number >> 8 & 255;
-      const b = number & 255;
-      const brightness = (r * 299 + g * 587 + b * 114) / 1000;
-      return brightness > 145 ? "#102018" : "#ffffff";
-    }
-
-    function applyColors() {
-      document.documentElement.style.setProperty("--card", ui.cardColor.value);
-      document.documentElement.style.setProperty("--correct", ui.correctColor.value);
-      document.documentElement.style.setProperty("--wrong", ui.wrongColor.value);
-      document.documentElement.style.setProperty("--reset", ui.resetColor.value);
-      document.documentElement.style.setProperty("--reset-text", textColorFor(ui.resetColor.value));
-    }
-
-    function readBackgroundSettings() {
-      return {
-        type: ui.bgType.value,
-        solid: ui.bgSolid.value,
-        gradient: {
-          g1: ui.g1.value,
-          g2: ui.g2.value,
-          g3: ui.g3.value,
-          direction: ui.gDir.value
-        },
-        imageUrl: ui.bgUrl.value,
-        blur: Number(ui.blur.value) || 0,
-        blurAnimated: ui.blurAnim.checked,
-        blurDuration: Number(ui.blurDuration.value) || 4,
-        glitch: ui.glitch.value,
-        glitchIntensity: Number(ui.glitchIntensity.value) || 4
-      };
-    }
-
-    function applyBackground() {
-      const bg = ui.stageBg;
-      const settings = readBackgroundSettings();
-
-      bg.className = "stage-bg";
-      bg.style.background = "transparent";
-      bg.style.filter = "";
-      bg.style.setProperty("--blur-max", settings.blur + "px");
-      bg.style.setProperty("--blur-duration", settings.blurDuration + "s");
-      bg.style.setProperty(
-        "--glitch-opacity",
-        String(settings.glitchIntensity / 10 * (settings.glitch === "strong" ? .32 : .2))
-      );
-
-      if (settings.type === "solid") {
-        bg.style.background = settings.solid;
-      } else if (settings.type === "gradient") {
-        bg.style.background =
-          `linear-gradient(${settings.gradient.direction}, ${settings.gradient.g1}, ${settings.gradient.g2}, ${settings.gradient.g3})`;
-      } else if (settings.type === "image" && settings.imageUrl) {
-        const safeUrl = settings.imageUrl.replace(/["\\]/g, "");
-        bg.style.background = `url("${safeUrl}") center / cover no-repeat`;
-      }
-
-      if (settings.blur > 0) {
-        if (settings.blurAnimated) {
-          bg.classList.add("animated-blur");
-        } else {
-          bg.style.filter = `blur(${settings.blur}px)`;
-        }
-      }
-
-      if (settings.glitch !== "none") {
-        bg.classList.add("glitch", settings.glitch);
-      }
-    }
-
-    function makeCard(item, side) {
-      const card = document.createElement("button");
-      card.type = "button";
-      card.className = "card";
-      card.dataset.id = item.id;
-      card.dataset.side = side;
-      card.setAttribute("aria-pressed", "false");
-
-      if (item.isImage) {
-        const image = document.createElement("img");
-        image.src = item.value;
-        image.alt = item.alt || item.value;
-        image.loading = "lazy";
-        image.onerror = () => {
-          image.remove();
-          const fallback = document.createElement("span");
-          fallback.className = "card-text";
-          fallback.textContent = item.value;
-          card.append(fallback);
-        };
-        card.append(image);
-      } else {
-        const span = document.createElement("span");
-        span.className = "card-text";
-        span.textContent = item.value;
-        card.append(span);
-      }
-
-      card.addEventListener("click", () => chooseCard(card));
-      return card;
-    }
-
-    function startGame(pairs) {
-      game.pairs = pairs.map((pair, index) => ({
-        id: String(index),
-        left: pair.left,
-        right: pair.right
-      }));
-
-      game.left = shuffle(game.pairs.map(pair => ({
-        id: pair.id,
-        value: pair.left,
-        isImage: isImageUrl(pair.left)
-      })));
-
-      game.right = shuffle(game.pairs.map(pair => ({
-        id: pair.id,
-        value: pair.right,
-        isImage: isImageUrl(pair.right)
-      })));
-
-      game.matched = new Set();
-      game.selected = null;
-      game.score = 0;
-      game.randomItems = shuffle([
-        ...game.left.map(item => ({ ...item, side: "left" })),
-        ...game.right.map(item => ({ ...item, side: "right" }))
-      ]);
-
-      renderGame();
-    }
-
-    function clearCards() {
-      ui.leftColumn.replaceChildren();
-      ui.rightColumn.replaceChildren();
-      ui.gameArea.querySelectorAll(".random-card").forEach(card => card.remove());
-    }
-
-    function renderGame() {
-      applyColors();
-      applyBackground();
-      clearCards();
-
-      ui.remaining.textContent = String(game.pairs.length - game.matched.size);
-      ui.score.textContent = String(game.score);
-      ui.message.textContent = "";
-
-      const layout = ui.layout.value;
-      ui.gameArea.className = "game-area " + layout;
-      ui.gameArea.style.removeProperty("--cols");
-      ui.gameArea.style.removeProperty("--rows");
-      ui.leftColumn.hidden = false;
-      ui.rightColumn.hidden = false;
-
-      if (layout === "random") {
-        ui.leftColumn.hidden = true;
-        ui.rightColumn.hidden = true;
-        ui.stageContent.style.overflow = "hidden";
-
-        const items = game.randomItems.filter(item => !game.matched.has(item.id));
-        const rect = ui.stageContent.getBoundingClientRect();
-        const width = Math.max(240, rect.width - 32);
-        const height = Math.max(220, rect.height - 48);
-        const count = items.length;
-
-        let columns = Math.max(1, Math.ceil(Math.sqrt(count * (width / height))));
-        columns = Math.min(columns, Math.max(1, count));
-        let rows = Math.ceil(count / columns);
-
-        while (rows > 1 && height / rows < 62 && columns < count) {
-          columns++;
-          rows = Math.ceil(count / columns);
-        }
-
-        ui.gameArea.style.setProperty("--cols", columns);
-        ui.gameArea.style.setProperty("--rows", rows);
-
-        const cellWidth = width / columns;
-        const cellHeight = height / rows;
-        const fontSize = Math.max(12, Math.min(21, Math.floor(Math.min(cellWidth / 13, cellHeight / 3.5))));
-        ui.gameArea.style.setProperty("--card-font", fontSize + "px");
-        ui.gameArea.style.setProperty("--card-height", Math.max(42, Math.floor(cellHeight - 8)) + "px");
-
-        items.forEach(item => {
-          const card = makeCard(item, item.side);
-          card.classList.add("random-card");
-          ui.gameArea.append(card);
-        });
-        return;
-      }
-
-      ui.stageContent.style.overflow = "auto";
-
-      const pairCount = Math.max(1, game.pairs.length);
-      const availableHeight = ui.stageContent.clientHeight || 500;
-      const cardHeight = Math.min(
-        220,
-        Math.max(62, Math.floor((availableHeight - 12 * (pairCount + 1)) / pairCount))
-      );
-
-      ui.gameArea.style.setProperty("--card-height", cardHeight + "px");
-      ui.gameArea.style.setProperty(
-        "--card-font",
-        `clamp(14px, ${Math.min(1.65, Math.max(.95, availableHeight / (pairCount * 360)))}vw, 21px)`
-      );
-
-      if (layout === "horizontal") {
-        game.left
-          .filter(item => !game.matched.has(item.id))
-          .forEach(item => ui.leftColumn.append(makeCard(item, "left")));
-
-        game.right
-          .filter(item => !game.matched.has(item.id))
-          .forEach(item => ui.rightColumn.append(makeCard(item, "right")));
-      } else {
-        const columns = Math.min(
-          pairCount,
-          Math.max(1, Math.floor((ui.stageContent.clientWidth || 700) / 260))
-        );
-
-        ui.leftColumn.style.gridTemplateColumns = `repeat(${columns}, minmax(0, 1fr))`;
-        ui.rightColumn.style.gridTemplateColumns = `repeat(${columns}, minmax(0, 1fr))`;
-
-        game.left
-          .filter(item => !game.matched.has(item.id))
-          .forEach(item => ui.leftColumn.append(makeCard(item, "left")));
-
-        game.right
-          .filter(item => !game.matched.has(item.id))
-          .forEach(item => ui.rightColumn.append(makeCard(item, "right")));
-      }
-    }
-
-    function chooseCard(card) {
-      if (card.disabled) return;
-
-      const { id, side } = card.dataset;
-
-      if (!game.selected) {
-        game.selected = { id, side, card };
-        card.classList.add("selected");
-        card.setAttribute("aria-pressed", "true");
-        return;
-      }
-
-      if (game.selected.card === card) {
-        card.classList.remove("selected");
-        card.setAttribute("aria-pressed", "false");
-        game.selected = null;
-        return;
-      }
-
-      if (game.selected.side === side) {
-        game.selected.card.classList.remove("selected");
-        game.selected.card.setAttribute("aria-pressed", "false");
-        game.selected = { id, side, card };
-        card.classList.add("selected");
-        card.setAttribute("aria-pressed", "true");
-        return;
-      }
-
-      const first = game.selected;
-      const leftId = side === "left" ? id : first.id;
-      const rightId = side === "right" ? id : first.id;
-      const firstCard = first.card;
-
-      firstCard.classList.remove("selected");
-      firstCard.setAttribute("aria-pressed", "false");
-      game.selected = null;
-
-      if (leftId === rightId) {
-        game.matched.add(id);
-        game.score++;
-        renderGame();
-
-        ui.message.textContent =
-          game.matched.size === game.pairs.length
-            ? (ui.feedbackFinished.value || t("finished"))
-            : (ui.feedbackCorrect.value || t("correct"));
-      } else {
-        firstCard.classList.add("wrong");
-        card.classList.add("wrong");
-        ui.message.textContent = ui.feedbackWrong.value || t("wrong");
-
-        setTimeout(() => {
-          firstCard.classList.remove("wrong");
-          card.classList.remove("wrong");
-          if (ui.message.textContent === (ui.feedbackWrong.value || t("wrong"))) {
-            ui.message.textContent = "";
-          }
-        }, 650);
-      }
-    }
-
-    function getConfig() {
-      return {
-        pairs: parsePairs(ui.pairs.value),
-        lang: language,
-        layout: ui.layout.value,
-        bg: readBackgroundSettings(),
-        colors: {
-          card: ui.cardColor.value,
-          correct: ui.correctColor.value,
-          wrong: ui.wrongColor.value,
-          reset: ui.resetColor.value
-        },
-        feedback: {
-          correct: ui.feedbackCorrect.value,
-          wrong: ui.feedbackWrong.value,
-          finished: ui.feedbackFinished.value
-        }
-      };
-    }
-
-    function makeGameUrl(embed) {
-      const url = new URL(location.href);
-      url.search = "";
-      url.hash = "";
-      url.searchParams.set("game", encodeConfig(getConfig()));
-
-      if (embed) {
-        url.searchParams.set("embed", "1");
-      }
-
-      return url.href;
-    }
-
-    function applyLanguage() {
-      document.documentElement.lang = language;
-      $("titleText").textContent = t("title");
-      $("subtitleText").textContent = t("subtitle");
-      $("previewTitle").textContent = t("preview");
-      $("previewHint").textContent = t("hint");
-
-      if (!editedFeedback.correct) ui.feedbackCorrect.value = t("correct");
-      if (!editedFeedback.wrong) ui.feedbackWrong.value = t("wrong");
-      if (!editedFeedback.finished) ui.feedbackFinished.value = t("finished");
-    }
-
-    function syncBackgroundControls() {
-      ui.gradientControls.hidden = ui.bgType.value !== "gradient";
-      ui.imageControls.hidden = ui.bgType.value !== "image";
-      ui.blurValue.textContent = ui.blur.value;
-    }
-
-    function applyConfig(config) {
-      if (config.lang === "ru" || config.lang === "en") {
-        language = config.lang;
-      }
-
-      ui.lang.value = language;
-
-      if (config.layout) ui.layout.value = config.layout;
-
-      if (config.colors) {
-        if (config.colors.card) ui.cardColor.value = config.colors.card;
-        if (config.colors.correct) ui.correctColor.value = config.colors.correct;
-        if (config.colors.wrong) ui.wrongColor.value = config.colors.wrong;
-        if (config.colors.reset) ui.resetColor.value = config.colors.reset;
-      }
-
-      if (config.feedback) {
-        ui.feedbackCorrect.value = config.feedback.correct || t("correct");
-        ui.feedbackWrong.value = config.feedback.wrong || t("wrong");
-        ui.feedbackFinished.value = config.feedback.finished || t("finished");
-        editedFeedback.correct = true;
-        editedFeedback.wrong = true;
-        editedFeedback.finished = true;
-      }
-
-      if (config.bg) {
-        const bg = config.bg;
-
-        if (bg.type) ui.bgType.value = bg.type;
-        if (bg.solid) ui.bgSolid.value = bg.solid;
-
-        if (bg.gradient) {
-          ui.g1.value = bg.gradient.g1 || ui.g1.value;
-          ui.g2.value = bg.gradient.g2 || ui.g2.value;
-          ui.g3.value = bg.gradient.g3 || ui.g3.value;
-          ui.gDir.value = bg.gradient.direction || ui.gDir.value;
-        }
-
-        if (bg.imageUrl) ui.bgUrl.value = bg.imageUrl;
-        if (Number.isFinite(bg.blur)) ui.blur.value = bg.blur;
-
-        ui.blurAnim.checked = Boolean(bg.blurAnimated);
-
-        if (bg.blurDuration) ui.blurDuration.value = bg.blurDuration;
-        if (bg.glitch) ui.glitch.value = bg.glitch;
-        if (bg.glitchIntensity) ui.glitchIntensity.value = bg.glitchIntensity;
-      }
-
-      syncBackgroundControls();
-      applyLanguage();
-    }
-
-    function enterGameMode(embed) {
-      document.documentElement.classList.add(embed ? "embed-mode" : "editor-game-mode");
-      $("fullscreenBtn").remove();
-      document.body.style.background = "transparent";
-      document.body.style.padding = "0";
-      ui.stage.style.height = "calc(100dvh - 42px)";
-      ui.stage.style.minHeight = "0";
-    }
-
-    function loadGameFromUrl() {
-      const params = new URLSearchParams(location.search);
-      const token = params.get("game");
-      if (!token) return false;
-
-      const config = decodeConfig(token);
-      if (!config || !Array.isArray(config.pairs)) {
-        ui.message.textContent = "Не удалось загрузить игру: проверьте ссылку.";
-        return true;
-      }
-
-      applyConfig(config);
-      enterGameMode(params.has("embed"));
-      ui.pairs.value = config.pairs.map(pair => `${pair.left} | ${pair.right}`).join("\n");
-      startGame(config.pairs);
-      return true;
-    }
-
-    $("previewBtn").addEventListener("click", () => {
-      const pairs = parsePairs(ui.pairs.value);
-
-      if (!pairs.length) {
-        ui.message.textContent = "Добавьте пары в формате «левая часть | правая часть».";
-        return;
-      }
-
-      ui.stage.style.height = `${Math.max(300, Number(ui.previewHeight.value) || 620)}px`;
-      startGame(pairs);
+    ui.gameArea.style.setProperty("--cols", columns);
+    ui.gameArea.style.setProperty("--rows", rows);
+
+    const cellWidth = availableWidth / columns;
+    const cellHeight = availableHeight / rows;
+    const fontSize = Math.max(
+      12,
+      Math.min(21, Math.floor(Math.min(cellWidth / 13, cellHeight / 3.5)))
+    );
+
+    ui.gameArea.style.setProperty("--card-font", fontSize + "px");
+    ui.gameArea.style.setProperty(
+      "--card-height",
+      Math.max(42, Math.floor(cellHeight - 8)) + "px"
+    );
+
+    items.forEach(item => {
+      const card = makeCard(item, item.side);
+      card.classList.add("random-card");
+      ui.gameArea.append(card);
     });
 
-    $("generateBtn").addEventListener("click", () => {
-      const pairs = parsePairs(ui.pairs.value);
+    return;
+  }
 
-      if (!pairs.length) {
-        ui.message.textContent = "Добавьте пары в формате «левая часть | правая часть».";
-        return;
+  ui.stageContent.style.overflow = "auto";
+
+  const pairCount = Math.max(1, game.pairs.length);
+  const availableHeight = ui.stageContent.clientHeight || 500;
+  const cardHeight = Math.min(
+    220,
+    Math.max(62, Math.floor((availableHeight - 12 * (pairCount + 1)) / pairCount))
+  );
+
+  ui.gameArea.style.setProperty("--card-height", cardHeight + "px");
+  ui.gameArea.style.setProperty(
+    "--card-font",
+    `clamp(14px, ${Math.min(1.65, Math.max(.95, availableHeight / (pairCount * 360)))}vw, 21px)`
+  );
+
+  if (layout === "horizontal") {
+    game.left
+      .filter(item => !game.matched.has(item.id))
+      .forEach(item => ui.leftColumn.append(makeCard(item, "left")));
+
+    game.right
+      .filter(item => !game.matched.has(item.id))
+      .forEach(item => ui.rightColumn.append(makeCard(item, "right")));
+  } else {
+    const columns = Math.min(
+      pairCount,
+      Math.max(1, Math.floor((ui.stageContent.clientWidth || 700) / 260))
+    );
+
+    ui.leftColumn.style.gridTemplateColumns = `repeat(${columns}, minmax(0,1fr))`;
+    ui.rightColumn.style.gridTemplateColumns = `repeat(${columns}, minmax(0,1fr))`;
+
+    game.left
+      .filter(item => !game.matched.has(item.id))
+      .forEach(item => ui.leftColumn.append(makeCard(item, "left")));
+
+    game.right
+      .filter(item => !game.matched.has(item.id))
+      .forEach(item => ui.rightColumn.append(makeCard(item, "right")));
+  }
+}
+
+function chooseCard(card) {
+  if (card.disabled) return;
+
+  const { id, side } = card.dataset;
+
+  if (!game.selected) {
+    game.selected = { id, side, card };
+    card.classList.add("selected");
+    card.setAttribute("aria-pressed", "true");
+    return;
+  }
+
+  if (game.selected.card === card) {
+    card.classList.remove("selected");
+    card.setAttribute("aria-pressed", "false");
+    game.selected = null;
+    return;
+  }
+
+  if (game.selected.side === side) {
+    game.selected.card.classList.remove("selected");
+    game.selected.card.setAttribute("aria-pressed", "false");
+    game.selected = { id, side, card };
+    card.classList.add("selected");
+    card.setAttribute("aria-pressed", "true");
+    return;
+  }
+
+  const first = game.selected;
+  const leftId = side === "left" ? id : first.id;
+  const rightId = side === "right" ? id : first.id;
+  const firstCard = first.card;
+
+  firstCard.classList.remove("selected");
+  firstCard.setAttribute("aria-pressed", "false");
+  game.selected = null;
+
+  if (leftId === rightId) {
+    game.matched.add(id);
+    game.score++;
+    renderGame();
+
+    ui.message.textContent =
+      game.matched.size === game.pairs.length
+        ? (ui.feedbackFinished.value || t("finished"))
+        : (ui.feedbackCorrect.value || t("correct"));
+  } else {
+    firstCard.classList.add("wrong");
+    card.classList.add("wrong");
+    ui.message.textContent = ui.feedbackWrong.value || t("wrong");
+
+    setTimeout(() => {
+      firstCard.classList.remove("wrong");
+      card.classList.remove("wrong");
+
+      if (ui.message.textContent === (ui.feedbackWrong.value || t("wrong"))) {
+        ui.message.textContent = "";
       }
+    }, 650);
+  }
+}
 
-      startGame(pairs);
+function getConfig() {
+  return {
+    pairs: parsePairs(ui.pairs.value),
+    lang: language,
+    layout: ui.layout.value,
+    bg: readBackgroundSettings(),
+    colors: {
+      card: ui.cardColor.value,
+      correct: ui.correctColor.value,
+      wrong: ui.wrongColor.value,
+      reset: ui.resetColor.value
+    },
+    feedback: {
+      correct: ui.feedbackCorrect.value,
+      wrong: ui.feedbackWrong.value,
+      finished: ui.feedbackFinished.value
+    }
+  };
+}
 
-      const src = makeGameUrl(true);
-      ui.embedCode.value =
-        `<iframe src="${src}" style="display:block;width:100%;height:100vh;border:0;background:transparent" allow="fullscreen" allowtransparency="true"></iframe>`;
+function makeGameUrl(embed) {
+  const url = new URL(location.href);
+  url.search = "";
+  url.hash = "";
+  url.searchParams.set("game", encodeConfig(getConfig()));
 
-      ui.message.textContent = "Iframe готов. Скопируйте код из поля редактора.";
-    });
+  if (embed) url.searchParams.set("embed", "1");
 
-    $("startBtn").addEventListener("click", () => {
-      const pairs = parsePairs(ui.pairs.value);
+  return url.href;
+}
 
-      if (!pairs.length) {
-        ui.message.textContent = "Добавьте пары в формате «левая часть | правая часть».";
-        return;
-      }
+function applyLanguage() {
+  document.documentElement.lang = language;
+  $("titleText").textContent = t("title");
+  $("subtitleText").textContent = t("subtitle");
+  $("previewTitle").textContent = t("preview");
+  $("previewHint").textContent = t("hint");
 
-      startGame(pairs);
-      window.open(makeGameUrl(false), "_blank", "noopener");
-    });
+  if (!editedFeedback.correct) ui.feedbackCorrect.value = t("correct");
+  if (!editedFeedback.wrong) ui.feedbackWrong.value = t("wrong");
+  if (!editedFeedback.finished) ui.feedbackFinished.value = t("finished");
+}
 
-    $("fullscreenBtn").addEventListener("click", () => {
-      const pairs = parsePairs(ui.pairs.value);
+function syncBackgroundControls() {
+  ui.gradientControls.hidden = ui.bgType.value !== "gradient";
+  ui.imageControls.hidden = ui.bgType.value !== "image";
+  ui.blurValue.textContent = ui.blur.value;
+}
 
-      if (!pairs.length) {
-        ui.message.textContent = "Добавьте пары в формате «левая часть | правая часть».";
-        return;
-      }
+function applyConfig(config) {
+  if (config.lang === "ru" || config.lang === "en") {
+    language = config.lang;
+  }
 
-      startGame(pairs);
-      window.open(makeGameUrl(false), "_blank", "noopener");
-    });
+  ui.lang.value = language;
 
-    $("resetBtn").addEventListener("click", () => {
-      if (!game.pairs.length) return;
-      startGame(game.pairs.map(pair => ({ left: pair.left, right: pair.right })));
-    });
+  if (config.layout) ui.layout.value = config.layout;
 
-    $("clearBtn").addEventListener("click", () => {
-      ui.pairs.value = "";
-      ui.embedCode.value = "";
-      game = {
-        pairs: [],
-        left: [],
-        right: [],
-        selected: null,
-        matched: new Set(),
-        randomItems: [],
-        score: 0
-      };
-      clearCards();
-      ui.remaining.textContent = "0";
-      ui.score.textContent = "0";
-      ui.message.textContent = "";
-    });
+  if (config.colors) {
+    if (config.colors.card) ui.cardColor.value = config.colors.card;
+    if (config.colors.correct) ui.correctColor.value = config.colors.correct;
+    if (config.colors.wrong) ui.wrongColor.value = config.colors.wrong;
+    if (config.colors.reset) ui.resetColor.value = config.colors.reset;
+  }
 
-    $("copyBtn").addEventListener("click", async () => {
-      try {
-        await navigator.clipboard.writeText(ui.embedCode.value);
-        $("copyBtn").textContent = "Скопировано!";
-      } catch {
-        ui.embedCode.focus();
-        ui.embedCode.select();
-        document.execCommand("copy");
-        $("copyBtn").textContent = "Скопировано!";
-      }
+  if (config.feedback) {
+    ui.feedbackCorrect.value = config.feedback.correct || t("correct");
+    ui.feedbackWrong.value = config.feedback.wrong || t("wrong");
+    ui.feedbackFinished.value = config.feedback.finished || t("finished");
+    editedFeedback.correct = true;
+    editedFeedback.wrong = true;
+    editedFeedback.finished = true;
+  }
 
-      setTimeout(() => $("copyBtn").textContent = "Скопировать код", 1200);
-    });
+  if (config.bg) {
+    const bg = config.bg;
 
-    ui.lang.addEventListener("change", () => {
-      language = ui.lang.value;
-      applyLanguage();
-    });
+    if (bg.type) ui.bgType.value = bg.type;
+    if (bg.solid) ui.bgSolid.value = bg.solid;
 
-    [
-      ["correct", ui.feedbackCorrect],
-      ["wrong", ui.feedbackWrong],
-      ["finished", ui.feedbackFinished]
-    ].forEach(([key, input]) => {
-      input.addEventListener("input", () => editedFeedback[key] = true);
-    });
+    if (bg.gradient) {
+      ui.g1.value = bg.gradient.g1 || ui.g1.value;
+      ui.g2.value = bg.gradient.g2 || ui.g2.value;
+      ui.g3.value = bg.gradient.g3 || ui.g3.value;
+      ui.gDir.value = bg.gradient.direction || bg.gradient.dir || ui.gDir.value;
+    }
 
-    [ui.cardColor, ui.correctColor, ui.wrongColor, ui.resetColor].forEach(input => {
-      input.addEventListener("input", () => {
-        applyColors();
-        if (game.pairs.length) renderGame();
-      });
-    });
+    if (bg.imageUrl) ui.bgUrl.value = bg.imageUrl;
+    if (Number.isFinite(bg.blur)) ui.blur.value = bg.blur;
 
-    [
-      ui.bgType, ui.bgSolid, ui.g1, ui.g2, ui.g3, ui.gDir, ui.bgUrl,
-      ui.blur, ui.blurAnim, ui.blurDuration, ui.glitch, ui.glitchIntensity
-    ].forEach(input => {
-      input.addEventListener("input", () => {
-        syncBackgroundControls();
-        applyBackground();
-      });
-      input.addEventListener("change", () => {
-        syncBackgroundControls();
-        applyBackground();
-      });
-    });
+    ui.blurAnim.checked = Boolean(bg.blurAnimated || bg.blurAnim);
 
-    ui.layout.addEventListener("change", () => {
-      if (game.pairs.length) renderGame();
-    });
+    if (bg.blurDuration || bg.blurAnimDur) {
+      ui.blurDuration.value = bg.blurDuration || bg.blurAnimDur;
+    }
 
-    let resizeTimer;
-    window.addEventListener("resize", () => {
-      clearTimeout(resizeTimer);
-      resizeTimer = setTimeout(() => {
-        if (game.pairs.length) renderGame();
-      }, 120);
-    });
+    if (bg.glitch) ui.glitch.value = bg.glitch;
+    if (bg.glitchMode) ui.glitch.value = bg.glitchMode;
+    if (bg.glitchIntensity) ui.glitchIntensity.value = bg.glitchIntensity;
+  }
 
-    window.addEventListener("load", () => {
-      syncBackgroundControls();
-      applyLanguage();
+  syncBackgroundControls();
+  applyLanguage();
+}
 
-      if (loadGameFromUrl()) return;
+function enterGameMode(embed) {
+  document.documentElement.classList.add(embed ? "embed-mode" : "editor-game-mode");
+  $("fullscreenBtn").remove();
+  ui.stageContent.style.overflow = ui.layout.value === "random" ? "hidden" : "auto";
+}
 
-      ui.pairs.value =
-        "It tastes like sugar and is pleasant to eat. | Sweet\n" +
-        "It has a fresh cool taste like mint. | Minty\n" +
-        "It tastes like fresh fruit. | Fruity\n" +
-        "It has a strong cocoa taste and isn’t very sweet. | Bitter\n" +
-        "It tastes like nuts such as almonds or hazelnuts. | Nutty";
+function loadGameFromUrl() {
+  const params = new URLSearchParams(location.search);
+  const token = params.get("game");
 
-      startGame(parsePairs(ui.pairs.value));
-    });
-  </script>
+  if (!token) return false;
+
+  const config = decodeConfig(token);
+
+  if (!config || !Array.isArray(config.pairs)) {
+    ui.message.textContent = "Не удалось загрузить игру: проверьте ссылку.";
+    return true;
+  }
+
+  applyConfig(config);
+  enterGameMode(params.has("embed"));
+  ui.pairs.value = config.pairs
+    .map(pair => `${pair.left} | ${pair.right}`)
+    .join("\n");
+
+  startGame(config.pairs);
+  return true;
+}
+
+$("previewBtn").addEventListener("click", () => {
+  const pairs = parsePairs(ui.pairs.value);
+
+  if (!pairs.length) {
+    ui.message.textContent = "Добавьте пары в формате «левая часть | правая часть».";
+    return;
+  }
+
+  ui.stage.style.height = `${Math.max(300, Number(ui.previewHeight.value) || 620)}px`;
+  startGame(pairs);
+});
+
+$("generateBtn").addEventListener("click", () => {
+  const pairs = parsePairs(ui.pairs.value);
+
+  if (!pairs.length) {
+    ui.message.textContent = "Добавьте пары в формате «левая часть | правая часть».";
+    return;
+  }
+
+  startGame(pairs);
+
+  const src = makeGameUrl(true);
+  ui.embedCode.value =
+    `<iframe src="${src}" style="display:block;width:100%;height:100vh;border:0;background:transparent" allow="fullscreen" allowtransparency="true"></iframe>`;
+
+  ui.message.textContent = "Iframe готов. Скопируйте код из поля редактора.";
+});
+
+function openGameInNewTab() {
+  const pairs = parsePairs(ui.pairs.value);
+
+  if (!pairs.length) {
+    ui.message.textContent = "Добавьте пары в формате «левая часть | правая часть».";
+    return;
+  }
+
+  startGame(pairs);
+  window.open(makeGameUrl(false), "_blank", "noopener");
+}
+
+$("startBtn").addEventListener("click", openGameInNewTab);
+$("fullscreenBtn").addEventListener("click", openGameInNewTab);
+
+$("resetBtn").addEventListener("click", () => {
+  if (!game.pairs.length) return;
+
+  startGame(game.pairs.map(pair => ({
+    left: pair.left,
+    right: pair.right
+  })));
+});
+
+$("clearBtn").addEventListener("click", () => {
+  ui.pairs.value = "";
+  ui.embedCode.value = "";
+
+  game = {
+    pairs: [],
+    left: [],
+    right: [],
+    selected: null,
+    matched: new Set(),
+    randomItems: [],
+    score: 0
+  };
+
+  clearCards();
+  ui.remaining.textContent = "0";
+  ui.score.textContent = "0";
+  ui.message.textContent = "";
+});
+
+$("copyBtn").addEventListener("click", async () => {
+  try {
+    await navigator.clipboard.writeText(ui.embedCode.value);
+  } catch {
+    ui.embedCode.focus();
+    ui.embedCode.select();
+    document.execCommand("copy");
+  }
+
+  $("copyBtn").textContent = "Скопировано!";
+  setTimeout(() => $("copyBtn").textContent = "Скопировать код", 1200);
+});
+
+ui.lang.addEventListener("change", () => {
+  language = ui.lang.value;
+  applyLanguage();
+});
+
+[
+  ["correct", ui.feedbackCorrect],
+  ["wrong", ui.feedbackWrong],
+  ["finished", ui.feedbackFinished]
+].forEach(([key, input]) => {
+  input.addEventListener("input", () => editedFeedback[key] = true);
+});
+
+[
+  ui.cardColor,
+  ui.correctColor,
+  ui.wrongColor,
+  ui.resetColor
+].forEach(input => {
+  input.addEventListener("input", () => {
+    applyColors();
+    if (game.pairs.length) renderGame();
+  });
+});
+
+[
+  ui.bgType, ui.bgSolid, ui.g1, ui.g2, ui.g3, ui.gDir, ui.bgUrl,
+  ui.blur, ui.blurAnim, ui.blurDuration, ui.glitch, ui.glitchIntensity
+].forEach(input => {
+  input.addEventListener("input", () => {
+    syncBackgroundControls();
+    applyBackground();
+  });
+  input.addEventListener("change", () => {
+    syncBackgroundControls();
+    applyBackground();
+  });
+});
+
+ui.layout.addEventListener("change", () => {
+  if (game.pairs.length) renderGame();
+});
+
+let resizeTimer;
+
+window.addEventListener("resize", () => {
+  clearTimeout(resizeTimer);
+  resizeTimer = setTimeout(() => {
+    if (game.pairs.length) renderGame();
+  }, 120);
+});
+
+window.addEventListener("load", () => {
+  syncBackgroundControls();
+  applyLanguage();
+
+  if (loadGameFromUrl()) return;
+
+  ui.pairs.value =
+    "It tastes like sugar and is pleasant to eat. | Sweet\n" +
+    "It has a fresh cool taste like mint. | Minty\n" +
+    "It tastes like fresh fruit. | Fruity\n" +
+    "It has a strong cocoa taste and isn’t very sweet. | Bitter\n" +
+    "It tastes like nuts such as almonds or hazelnuts. | Nutty";
+
+  startGame(parsePairs(ui.pairs.value));
+});
+</script>
 </body>
 </html>
