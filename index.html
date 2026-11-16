@@ -4,625 +4,148 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Matching Game — Редактор</title>
-
 <style>
-:root {
-  color-scheme: dark;
-  --accent: #49e0c1;
-  --muted: #9aa9bd;
-  --card: #64123f;
-  --correct: #16834a;
-  --wrong: #d43d4f;
-  --reset: #2dd4bf;
-  --reset-text: #042022;
-}
-
-* { box-sizing: border-box; }
-
-html, body {
-  min-height: 100%;
-  margin: 0;
-}
-
-body {
-  padding: 16px;
-  color: #edf4fb;
-  font: 15px/1.45 Inter, system-ui, -apple-system, "Segoe UI", Arial, sans-serif;
-  background:
-    radial-gradient(ellipse at 12% 0%, rgba(22,89,112,.32), transparent 38%),
-    radial-gradient(ellipse at 96% 92%, rgba(79,48,126,.22), transparent 34%),
-    linear-gradient(145deg, #07111f, #0a1728 55%, #0b1220);
-  background-attachment: fixed;
-}
-
-button, input, select, textarea { font: inherit; }
-
-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16px;
-  margin: 0 0 18px;
-  padding: 16px 20px;
-  border: 1px solid rgba(255,255,255,.08);
-  border-radius: 16px;
-  background: rgba(12,22,38,.68);
-  backdrop-filter: blur(16px);
-  box-shadow: 0 10px 36px rgba(0,0,0,.2);
-}
-
-h1 {
-  margin: 0;
-  font-size: clamp(20px, 2vw, 26px);
-  font-weight: 750;
-  letter-spacing: -.035em;
-}
-
-h2 {
-  margin: 0 0 15px;
-  font-size: 19px;
-  font-weight: 700;
-  letter-spacing: -.025em;
-}
-
-h3 {
-  margin: 0 0 12px;
-  color: #c4d1e1;
-  font-size: 12px;
-  letter-spacing: .09em;
-  text-transform: uppercase;
-}
-
-label, .small { color: var(--muted); }
-.small { font-size: 13px; }
-
-.container {
-  display: grid;
-  grid-template-columns: minmax(320px, 430px) minmax(0, 1fr);
-  gap: 18px;
-  align-items: stretch;
-}
-
-.panel {
-  min-width: 0;
-  padding: clamp(16px, 2vw, 24px);
-  border: 1px solid rgba(255,255,255,.09);
-  border-radius: 18px;
-  background: linear-gradient(150deg, rgba(18,31,51,.94), rgba(10,19,34,.92));
-  box-shadow: 0 18px 48px rgba(0,0,0,.28), inset 0 1px rgba(255,255,255,.035);
-  backdrop-filter: blur(18px);
-}
-
-.editor h2::after {
-  content: "";
-  display: block;
-  width: 34px;
-  height: 3px;
-  margin-top: 9px;
-  border-radius: 3px;
-  background: linear-gradient(90deg, var(--accent), transparent);
-}
-
-.field { margin: 0 0 12px; }
-
-.field > label {
-  display: block;
-  margin: 0 0 6px;
-  color: #bdc9d9;
-  font-size: 12px;
-  font-weight: 650;
-  letter-spacing: .02em;
-}
-
-textarea,
-input[type="text"],
-input[type="url"],
-input[type="number"],
-select {
-  width: 100%;
-  min-width: 0;
-  padding: 10px 12px;
-  border: 1px solid rgba(175,199,226,.17);
-  border-radius: 10px;
-  outline: none;
-  color: #f0f5fc;
-  background: rgba(4,11,21,.58);
-  transition: border-color .18s, box-shadow .18s, background .18s;
-}
-
-textarea {
-  min-height: 155px;
-  resize: vertical;
-  line-height: 1.5;
-}
-
-textarea::placeholder, input::placeholder { color: #718198; }
-
-textarea:focus,
-input[type="text"]:focus,
-input[type="url"]:focus,
-input[type="number"]:focus,
-select:focus {
-  border-color: rgba(73,224,193,.78);
-  background: rgba(4,11,21,.8);
-  box-shadow: 0 0 0 3px rgba(73,224,193,.12);
-}
-
-select option { background: #101a2b; }
-
-input[type="color"] {
-  width: 38px;
-  height: 32px;
-  padding: 2px;
-  border: 1px solid rgba(255,255,255,.2);
-  border-radius: 8px;
-  background: rgba(255,255,255,.05);
-  cursor: pointer;
-}
-
-input[type="range"] { accent-color: var(--accent); }
-
-.hint {
-  margin: 6px 0 0;
-  color: #8999ae;
-  font-size: 12px;
-  line-height: 1.5;
-}
-
-.grid2 {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 12px;
-}
-
-.grid3 {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0,1fr));
-  gap: 12px;
-}
-
-.setting-box {
-  margin: 14px 0;
-  padding: 14px;
-  border: 1px solid rgba(255,255,255,.085);
-  border-radius: 13px;
-  background: rgba(4,12,23,.3);
-}
-
-.control-row {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  flex-wrap: wrap;
-}
-
-.color-control {
-  display: flex;
-  min-width: 0;
-  align-items: center;
-  gap: 7px;
-  padding: 8px 10px;
-  border: 1px solid rgba(255,255,255,.055);
-  border-radius: 10px;
-  background: rgba(255,255,255,.035);
-}
-
-.color-control label,
-.color-control span {
-  color: #bdc9d9;
-  font-size: 12px;
-  font-weight: 600;
-}
-
-.actions {
-  display: flex;
-  gap: 9px;
-  flex-wrap: wrap;
-  margin: 16px 0 12px;
-}
-
-button {
-  padding: 9px 13px;
-  border: 1px solid rgba(196,215,237,.18);
-  border-radius: 10px;
-  color: #eaf2fb;
-  background: rgba(255,255,255,.055);
-  font-size: 13px;
-  font-weight: 650;
-  cursor: pointer;
-  transition: transform .18s, border-color .18s, background .18s, box-shadow .18s;
-}
-
-button:hover {
-  border-color: rgba(73,224,193,.5);
-  background: rgba(73,224,193,.09);
-  box-shadow: 0 5px 16px rgba(0,0,0,.18);
-}
-
-button:active { transform: translateY(1px); }
-
-button.primary {
-  border: 0;
-  color: #06231e;
-  background: linear-gradient(135deg, #55e3c4, #29c3a6);
-  box-shadow: 0 7px 20px rgba(41,195,166,.16);
-}
-
-button.primary:hover {
-  background: linear-gradient(135deg, #70efd2, #36d0b2);
-}
-
-#resetBtn {
-  border-color: var(--reset);
-  color: var(--reset-text);
-  background: var(--reset);
-}
-
-#resetBtn:hover { filter: brightness(1.12); }
-
-.output textarea {
-  min-height: 86px;
-  color: #c8d7e7;
-  background: rgba(3,10,19,.72);
-  font: 12px/1.4 ui-monospace, SFMono-Regular, Consolas, monospace;
-}
-
-.preview {
-  display: flex;
-  min-width: 0;
-  flex-direction: column;
-}
-
-.game-top {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 10px;
-  margin-bottom: 14px;
-  padding: 2px 2px 13px;
-  border-bottom: 1px solid rgba(255,255,255,.08);
-}
-
-.game-top h2 { margin: 0; font-size: 18px; }
-
-.game-controls {
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
-  gap: 10px;
-  flex-wrap: wrap;
-}
-
-.stat {
-  padding: 7px 10px;
-  border: 1px solid rgba(255,255,255,.06);
-  border-radius: 9px;
-  color: #c2cede;
-  background: rgba(255,255,255,.045);
-  font-size: 13px;
-  white-space: nowrap;
-}
-
-.stat b { margin-left: 3px; color: #f2f7fc; }
-
-.stage {
-  position: relative;
-  isolation: isolate;
-  flex: 1;
-  height: min(76vh, 820px);
-  min-height: 520px;
-  overflow: hidden;
-  border: 1px solid rgba(255,255,255,.09);
-  border-radius: 15px;
-  background: rgba(3,9,17,.16);
-  box-shadow: inset 0 1px rgba(255,255,255,.04);
-}
-
-.stage-bg {
-  position: absolute;
-  inset: -32px;
-  z-index: -1;
-  overflow: hidden;
-  border-radius: inherit;
-  pointer-events: none;
-  background: transparent;
-  will-change: filter, transform;
-}
-
-.stage-bg::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  opacity: 0;
-  pointer-events: none;
-  background:
-    repeating-linear-gradient(0deg, transparent 0 12px, #00e5ff20 12px 14px, transparent 14px 25px),
-    linear-gradient(90deg, #ff00a020, #00e5ff18, #ff00a020);
-  mix-blend-mode: screen;
-}
-
-.stage-bg.glitch::after {
-  opacity: var(--glitch-opacity, .14);
-  animation: glitchBg .35s steps(2, end) infinite;
-}
-
-.stage-bg.glitch.strong::after {
-  opacity: var(--glitch-opacity, .24);
-  animation-duration: .16s;
-}
-
-@keyframes glitchBg {
-  0% { transform: translate(0,0); clip-path: inset(0 0 84% 0); }
-  25% { transform: translate(5px,-2px); clip-path: inset(28% 0 50% 0); }
-  50% { transform: translate(-4px,1px); clip-path: inset(61% 0 21% 0); }
-  75% { transform: translate(2px,0); clip-path: inset(82% 0 5% 0); }
-  100% { transform: none; clip-path: inset(0); }
-}
-
-@keyframes blurPulse {
-  0%, 100% { filter: blur(0); }
-  50% { filter: blur(var(--blur-max, 6px)); }
-}
-
-.stage-bg.animated-blur {
-  animation: blurPulse var(--blur-duration, 4s) ease-in-out infinite;
-}
-
-.stage-content {
-  position: relative;
-  z-index: 1;
-  display: flex;
-  width: 100%;
-  height: 100%;
-  min-height: 0;
-  flex-direction: column;
-  overflow: auto;
-  padding: clamp(16px, 2.4vw, 32px);
-}
-
-.game-area {
-  position: relative;
-  display: grid;
-  width: 100%;
-  min-height: 0;
-  gap: clamp(8px, 1.2vw, 16px);
-  align-content: center;
-  margin: auto;
-}
-
-.game-area.horizontal {
-  grid-template-columns: minmax(0,1fr) minmax(0,1fr);
-}
-
-.game-area.vertical {
-  grid-template-columns: minmax(0,1fr);
-}
-
-.game-area.random {
-  flex: 1 1 auto;
-  height: auto;
-  min-height: 0;
-  align-content: stretch;
-  grid-template-columns: repeat(var(--cols, 2), minmax(0,1fr));
-  grid-template-rows: repeat(var(--rows, 2), minmax(0,1fr));
-  gap: clamp(5px, 1vw, 12px);
-}
-
-.column {
-  display: grid;
-  min-width: 0;
-  gap: clamp(7px, 1vw, 12px);
-  align-content: center;
-}
-
-.card {
-  display: flex;
-  width: 100%;
-  min-width: 0;
-  min-height: var(--card-height, 58px);
-  align-items: center;
-  gap: 10px;
-  overflow-wrap: anywhere;
-  padding: clamp(9px, 1.2vw, 15px);
-  border: 1px solid rgba(255,255,255,.12);
-  border-radius: 13px;
-  color: #fff;
-  background: var(--card);
-  box-shadow: 0 8px 22px rgba(0,0,0,.24), inset 0 1px rgba(255,255,255,.08);
-  text-align: left;
-  font-size: var(--card-font, clamp(14px, 1.3vw, 19px));
-  font-weight: 560;
-  line-height: 1.25;
-  cursor: pointer;
-  transition: transform .2s, box-shadow .2s, filter .2s, background .2s;
-}
-
-.card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 12px 28px rgba(0,0,0,.3);
-  filter: brightness(1.08);
-}
-
-.card img {
-  display: block;
-  max-width: min(32%, 140px);
-  max-height: 100%;
-  flex: 0 1 auto;
-  border-radius: 7px;
-  object-fit: contain;
-}
-
-.card-text { min-width: 0; }
-
-.card.selected {
-  outline: 2px solid var(--accent);
-  outline-offset: 1px;
-}
-
-.card.correct {
-  border-color: var(--correct);
-  color: #fff;
-  background: var(--correct);
-}
-
-.card.wrong {
-  border-color: var(--wrong);
-  background: var(--wrong);
-  animation: shake .3s ease;
-}
-
-@keyframes shake {
-  25% { translate: -5px 0; }
-  50% { translate: 5px 0; }
-  75% { translate: -3px 0; }
-}
-
-.message {
-  flex: 0 0 auto;
-  min-height: 1.5em;
-  margin: 8px 2px 0;
-  color: #fff;
-  font-size: 14px;
-  font-weight: 600;
-  text-shadow: 0 1px 4px #0008;
-}
-
-footer { margin-top: 12px; color: #8392a7; }
-
-/* Embed: toolbar is transparent and takes its real height.
-   The board gets the remaining height, so it cannot slide underneath the toolbar. */
-.embed-mode body,
-.embed-mode .container,
-.embed-mode .preview,
-.embed-mode .game-top,
-.embed-mode .stage,
-.editor-game-mode body,
-.editor-game-mode .container,
-.editor-game-mode .preview,
-.editor-game-mode .game-top,
-.editor-game-mode .stage {
-  background: transparent !important;
-}
-
-.embed-mode body,
-.editor-game-mode body {
-  min-height: 100%;
-  margin: 0;
-  padding: 0;
-  overflow: hidden;
-}
-
-.embed-mode .container,
-.editor-game-mode .container {
-  display: block;
-  height: 100dvh;
-  margin: 0;
-  padding: 0;
-}
-
-.embed-mode .panel,
-.embed-mode .preview,
-.editor-game-mode .panel,
-.editor-game-mode .preview {
-  margin: 0 !important;
-  padding: 0 !important;
-  border: 0 !important;
-  border-radius: 0 !important;
-  box-shadow: none !important;
-  backdrop-filter: none;
-}
-
-.embed-mode .editor,
-.embed-mode header,
-.embed-mode footer,
-.editor-game-mode .editor,
-.editor-game-mode header,
-.editor-game-mode footer {
-  display: none !important;
-}
-
-.embed-mode .preview,
-.editor-game-mode .preview {
-  display: flex;
-  width: 100%;
-  height: 100dvh;
-  min-height: 0;
-  flex-direction: column;
-}
-
-.embed-mode .game-top,
-.editor-game-mode .game-top {
-  position: relative;
-  z-index: 2;
-  flex: 0 0 auto;
-  min-height: 0;
-  margin: 0;
-  padding: 10px 14px 12px;
-  border: 0;
-  border-radius: 0;
-  box-shadow: none;
-  backdrop-filter: none;
-}
-
-.embed-mode .stage,
-.editor-game-mode .stage {
-  position: relative;
-  flex: 1 1 auto;
-  width: 100%;
-  height: auto;
-  min-height: 0;
-  margin: 0;
-  overflow: hidden;
-  border: 0;
-  border-radius: 0;
-  box-shadow: none;
-}
-
-.embed-mode .stage-content,
-.editor-game-mode .stage-content {
-  height: 100%;
-  min-height: 0;
-  padding: clamp(8px, 1.8vw, 24px);
-}
-
-.embed-mode .stage-content:has(.game-area.random),
-.editor-game-mode .stage-content:has(.game-area.random) {
-  overflow: hidden;
-}
-
-@media (max-width: 900px) {
-  body { padding: 12px; }
-  .container { grid-template-columns: minmax(0,1fr); gap: 14px; }
-  .panel { padding: 18px; }
-  .editor { order: 1; }
-  .preview { order: 2; }
-  .stage { height: 68vh; min-height: 430px; }
-  .game-top { align-items: flex-start; }
-  .game-controls { gap: 8px; }
-}
-
-@media (max-width: 520px) {
-  header {
-    align-items: flex-start;
-    flex-direction: column;
-    gap: 4px;
-    padding: 13px 15px;
+:root{color-scheme:dark;--accent:#49e0c1;--muted:#9aa9bd;--card:#64123f;--correct:#16834a;--wrong:#d43d4f;--reset:#2dd4bf;--reset-text:#042022;--toolbar:transparent}
+*{box-sizing:border-box}
+html,body{margin:0;min-height:100%}
+body{padding:16px;color:#edf4fb;font:15px/1.45 Inter,system-ui,-apple-system,"Segoe UI",Arial,sans-serif;background:radial-gradient(ellipse at 12% 0%,rgba(22,89,112,.32),transparent 38%),radial-gradient(ellipse at 96% 92%,rgba(79,48,126,.22),transparent 34%),linear-gradient(145deg,#07111f,#0a1728 55%,#0b1220);background-attachment:fixed}
+button,input,select,textarea{font:inherit}
+header{display:flex;align-items:center;justify-content:space-between;gap:16px;margin:0 0 18px;padding:16px 20px;border:1px solid #ffffff14;border-radius:16px;background:#0c1626af;backdrop-filter:blur(16px);box-shadow:0 10px 36px #0003}
+h1{margin:0;font-size:clamp(20px,2vw,26px);font-weight:750;letter-spacing:-.035em}
+h2{margin:0 0 15px;font-size:19px;font-weight:700;letter-spacing:-.025em}
+h3{margin:0 0 12px;color:#c4d1e1;font-size:12px;letter-spacing:.09em;text-transform:uppercase}
+label,.small{color:var(--muted)}
+.small{font-size:13px}
+.container{display:grid;grid-template-columns:minmax(320px,430px) minmax(0,1fr);gap:18px;align-items:stretch}
+.panel{min-width:0;padding:clamp(16px,2vw,24px);border:1px solid #ffffff17;border-radius:18px;background:linear-gradient(150deg,#121f33f0,#0a132bee);box-shadow:0 18px 48px #0005,inset 0 1px #ffffff09;backdrop-filter:blur(18px)}
+.editor h2:after{content:"";display:block;width:34px;height:3px;margin-top:9px;border-radius:3px;background:linear-gradient(90deg,var(--accent),transparent)}
+.field{margin:0 0 12px}
+.field>label{display:block;margin:0 0 6px;color:#bdc9d9;font-size:12px;font-weight:650;letter-spacing:.02em}
+textarea,input[type=text],input[type=url],input[type=number],select{width:100%;min-width:0;padding:10px 12px;border:1px solid #afc7e22b;border-radius:10px;outline:none;color:#f0f5fc;background:#040b2194;transition:border-color .18s,box-shadow .18s,background .18s}
+textarea{min-height:155px;resize:vertical;line-height:1.5}
+textarea::placeholder,input::placeholder{color:#718198}
+textarea:focus,input:focus,select:focus{border-color:#49e0c1c7;box-shadow:0 0 0 3px #49e0c11f;background:#040b21cc}
+select option{background:#101a2b}
+input[type=color]{width:38px;height:32px;padding:2px;border:1px solid #ffffff33;border-radius:8px;background:#ffffff0d;cursor:pointer}
+input[type=range]{accent-color:var(--accent)}
+.hint{margin:6px 0 0;color:#8999ae;font-size:12px;line-height:1.5}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.grid3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.setting-box{margin:14px 0;padding:14px;border:1px solid #ffffff16;border-radius:13px;background:#040c234d}
+.control-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.color-control{display:flex;min-width:0;align-items:center;gap:7px;padding:8px 10px;border:1px solid #ffffff0e;border-radius:10px;background:#ffffff09}
+.color-control label,.color-control span{color:#bdc9d9;font-size:12px;font-weight:600}
+.actions{display:flex;gap:9px;flex-wrap:wrap;margin:16px 0 12px}
+button{padding:9px 13px;border:1px solid #c4d7ed2e;border-radius:10px;color:#eaf2fb;background:#ffffff0e;font-size:13px;font-weight:650;cursor:pointer;transition:transform .18s,border-color .18s,background .18s,box-shadow .18s}
+button:hover{border-color:#49e0c180;background:#49e0c117;box-shadow:0 5px 16px #0003}
+button:active{transform:translateY(1px)}
+button.primary{border:0;color:#06231e;background:linear-gradient(135deg,#55e3c4,#29c3a6);box-shadow:0 7px 20px #29c3a629}
+button.primary:hover{background:linear-gradient(135deg,#70efd2,#36d0b2)}
+#resetBtn{border-color:var(--reset);color:var(--reset-text);background:var(--reset)}
+#resetBtn:hover{filter:brightness(1.12)}
+.output textarea{min-height:86px;color:#c8d7e7;background:#030a13b8;font:12px/1.4 ui-monospace,SFMono-Regular,Consolas,monospace}
+.preview{display:flex;min-width:0;flex-direction:column}
+.game-top{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:14px;padding:2px 2px 13px;border-bottom:1px solid #ffffff14}
+.game-top h2{margin:0;font-size:18px}
+.game-controls{display:flex;align-items:center;justify-content:flex-end;gap:10px;flex-wrap:wrap}
+.stat{padding:7px 10px;border:1px solid #ffffff0f;border-radius:9px;color:#c2cede;background:#ffffff0b;font-size:13px;white-space:nowrap}
+.stat b{margin-left:3px;color:#f2f7fc}
+.stage{position:relative;isolation:isolate;flex:1;height:min(76vh,820px);min-height:520px;overflow:hidden;border:1px solid #ffffff17;border-radius:15px;background:#03091129;box-shadow:inset 0 1px #ffffff0a}
+.stage-bg{position:absolute;inset:-32px;z-index:-1;overflow:hidden;border-radius:inherit;pointer-events:none;background:transparent;will-change:filter,transform}
+.stage-bg:after{content:"";position:absolute;inset:0;opacity:0;pointer-events:none;background:repeating-linear-gradient(0deg,transparent 0 12px,#00e5ff20 12px 14px,transparent 14px 25px),linear-gradient(90deg,#ff00a020,#00e5ff18,#ff00a020);mix-blend-mode:screen}
+.stage-bg.glitch:after{opacity:var(--glitch-opacity,.14);animation:glitchBg .35s steps(2,end) infinite}
+.stage-bg.glitch.strong:after{animation-duration:.16s}
+.stage-bg.animated-blur{animation:blurPulse var(--blur-duration,4s) ease-in-out infinite}
+@keyframes glitchBg{0%{transform:translate(0,0);clip-path:inset(0 0 84% 0)}25%{transform:translate(5px,-2px);clip-path:inset(28% 0 50% 0)}50%{transform:translate(-4px,1px);clip-path:inset(61% 0 21% 0)}75%{transform:translate(2px,0);clip-path:inset(82% 0 5% 0)}100%{transform:none;clip-path:inset(0)}}
+@keyframes blurPulse{0%,100%{filter:blur(0)}50%{filter:blur(var(--blur-max,6px))}}
+.stage-content{position:relative;z-index:1;display:flex;width:100%;height:100%;min-height:0;flex-direction:column;overflow:auto;padding:clamp(16px,2.4vw,32px)}
+.game-area{position:relative;display:grid;width:100%;min-height:0;gap:clamp(8px,1.2vw,16px);align-content:center;margin:auto}
+.game-area.horizontal{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}
+.game-area.vertical{grid-template-columns:minmax(0,1fr)}
+.game-area.random{height:100%;align-content:stretch;grid-template-columns:repeat(var(--cols,2),minmax(0,1fr));grid-template-rows:repeat(var(--rows,2),minmax(0,1fr));gap:clamp(5px,1vw,12px)}
+.column{display:grid;min-width:0;gap:clamp(7px,1vw,12px);align-content:center}
+.card{appearance:none;display:flex;width:100%;min-width:0;min-height:var(--card-height,58px);align-items:center;gap:10px;overflow:hidden;overflow-wrap:anywhere;padding:clamp(9px,1.2vw,15px);border:1px solid #ffffff20;border-radius:13px;color:#fff;background:var(--card);box-shadow:0 8px 22px #0004,inset 0 1px #ffffff14;text-align:left;font-size:var(--card-font,clamp(14px,1.3vw,19px));font-weight:560;line-height:1.25;cursor:pointer;transition:transform .2s,box-shadow .2s,filter .2s,background .2s}
+.card:hover{transform:translateY(-2px);box-shadow:0 12px 28px #0005;filter:brightness(1.08)}
+.card img{display:block;max-width:min(32%,140px);max-height:100%;flex:0 1 auto;border-radius:7px;object-fit:contain}
+.card-text{min-width:0}
+.card.selected{outline:2px solid var(--accent);outline-offset:1px}
+.card.correct{border-color:var(--correct);color:#fff;background:var(--correct)}
+.card.wrong{border-color:var(--wrong);background:var(--wrong);animation:shake .3s ease}
+@keyframes shake{25%{translate:-5px 0}50%{translate:5px 0}75%{translate:-3px 0}}
+.message{flex:0 0 auto;min-height:1.5em;margin:8px 2px 0;color:#fff;font-size:14px;font-weight:600;text-shadow:0 1px 4px #0008}
+footer{margin-top:12px;color:#8392a7}
+
+/* Embed: toolbar and play area are separate rows; no overlap. */
+html.embed-mode,html.embed-mode body,
+html.editor-game-mode,html.editor-game-mode body{
+  width:100%;height:100%;min-height:0;margin:0!important;padding:0!important;
+  overflow:hidden;background:transparent!important
+}
+html.embed-mode #appRoot,html.editor-game-mode #appRoot{
+  display:block!important;width:100%;height:100dvh;margin:0!important;padding:0!important
+}
+html.embed-mode #previewPanel,html.editor-game-mode #previewPanel{
+  display:grid!important;grid-template-rows:max-content minmax(0,1fr);
+  width:100%;height:100dvh;min-height:0;margin:0!important;padding:0!important;
+  overflow:hidden;border:0!important;border-radius:0!important;
+  background:transparent!important;box-shadow:none!important;backdrop-filter:none
+}
+html.embed-mode .editor,html.embed-mode header,html.embed-mode footer,
+html.editor-game-mode .editor,html.editor-game-mode header,html.editor-game-mode footer{
+  display:none!important
+}
+html.embed-mode .game-top,html.editor-game-mode .game-top{
+  position:relative!important;inset:auto!important;z-index:2;grid-row:1;
+  display:flex;flex:none;width:100%;min-height:0;margin:0!important;
+  padding:8px 14px!important;border:0!important;border-radius:0!important;
+  background:var(--toolbar,transparent)!important;box-shadow:none!important;
+  backdrop-filter:none!important
+}
+html.embed-mode #stage,html.editor-game-mode #stage{
+  position:relative;grid-row:2;align-self:stretch;width:100%;height:auto!important;
+  min-height:0!important;margin:0!important;overflow:hidden;border:0!important;
+  border-radius:0!important;background:transparent!important;box-shadow:none!important
+}
+html.embed-mode #stageContent,html.editor-game-mode #stageContent{
+  width:100%;height:100%!important;min-height:0!important;padding:clamp(8px,1.8vw,24px)
+}
+html.embed-mode .game-area.random,html.editor-game-mode .game-area.random{
+  flex:1 1 auto;height:auto;min-height:0
+}
+html.embed-mode #stageContent:has(.game-area.random),
+html.editor-game-mode #stageContent:has(.game-area.random){overflow:hidden}
+
+@media(max-width:900px){
+  body{padding:12px}
+  .container{grid-template-columns:minmax(0,1fr);gap:14px}
+  .panel{padding:18px}
+  .editor{order:1}
+  .preview{order:2}
+  .stage{height:68vh;min-height:430px}
+  .game-top{align-items:flex-start}
+  .game-controls{gap:8px}
+}
+@media(max-width:520px){
+  header{align-items:flex-start;flex-direction:column;gap:4px;padding:13px 15px}
+  .container{gap:12px}
+  .panel{padding:14px}
+  .setting-box{padding:11px}
+  .game-top{display:block}
+  .game-controls{justify-content:flex-start;margin-top:8px}
+  .stage{height:66vh;min-height:380px}
+  .game-area.horizontal{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}
+  .card{border-radius:10px;padding:8px}
+  .grid2,.grid3{grid-template-columns:1fr}
+  html.embed-mode .game-top,html.editor-game-mode .game-top{
+    display:flex;flex-direction:row;align-items:center;justify-content:space-between;
+    gap:6px;padding:6px 8px!important
   }
-
-  .container { gap: 12px; }
-  .panel { padding: 14px; }
-  .setting-box { padding: 11px; }
-  .game-top { display: block; }
-  .game-controls { justify-content: flex-start; margin-top: 8px; }
-  .stage { height: 66vh; min-height: 380px; }
-  .game-area.horizontal { grid-template-columns: minmax(0,1fr) minmax(0,1fr); }
-  .card { border-radius: 10px; padding: 8px; }
-  .grid2, .grid3 { grid-template-columns: 1fr; }
+  html.embed-mode .game-top h2,html.editor-game-mode .game-top h2{font-size:15px}
 }
 </style>
 </head>
-
 <body>
+
 <header>
   <h1 id="titleText">Matching Game — Редактор</h1>
   <div class="small" id="subtitleText">Создайте пары и настройте игру</div>
@@ -760,6 +283,21 @@ footer { margin-top: 12px; color: #8392a7; }
     </div>
 
     <div class="setting-box">
+      <h3>Панель Preview / Game</h3>
+      <div class="grid2">
+        <div class="color-control">
+          <label for="toolbarTransparent">Прозрачная панель</label>
+          <input id="toolbarTransparent" type="checkbox" checked>
+        </div>
+        <div class="color-control">
+          <label for="toolbarColor">Цвет панели</label>
+          <input id="toolbarColor" type="color" value="#101827">
+        </div>
+      </div>
+      <div class="hint">По умолчанию панель прозрачная. Снимите галочку, чтобы использовать выбранный цвет.</div>
+    </div>
+
+    <div class="setting-box">
       <h3>Тексты обратной связи</h3>
       <div class="field">
         <label for="fbCorrect">Верный ответ</label>
@@ -773,7 +311,7 @@ footer { margin-top: 12px; color: #8392a7; }
         <label for="fbFinished">Все пары найдены</label>
         <input id="fbFinished" type="text">
       </div>
-      <div class="hint">При смене языка стандартные сообщения обновятся автоматически. Если изменить текст вручную, он сохранится.</div>
+      <div class="hint">При смене языка стандартные сообщения обновятся. Вручную изменённый текст сохранится.</div>
     </div>
 
     <div class="actions">
@@ -817,7 +355,7 @@ footer { margin-top: 12px; color: #8392a7; }
   </section>
 </main>
 
-<footer class="small">Разместите страницу на GitHub Pages и используйте сгенерированный iframe для встраивания игры.</footer>
+<footer class="small" style="margin-top:12px">Разместите страницу на GitHub Pages и используйте сгенерированный iframe для встраивания игры.</footer>
 
 <script>
 "use strict";
@@ -849,7 +387,7 @@ const ui = {
   pairs: $("pairsInput"),
   lang: $("langSelect"),
   layout: $("layoutSelect"),
-  previewHeight: $("previewH"),
+  height: $("previewH"),
   bgType: $("bgType"),
   bgSolid: $("bgSolid"),
   g1: $("g1"),
@@ -860,32 +398,34 @@ const ui = {
   gradientControls: $("gradientControls"),
   imageControls: $("imageControls"),
   blur: $("blurRange"),
-  blurValue: $("blurVal"),
+  blurVal: $("blurVal"),
   blurAnim: $("blurAnim"),
-  blurDuration: $("blurAnimDur"),
+  blurDur: $("blurAnimDur"),
   glitch: $("glitchMode"),
   glitchIntensity: $("glitchIntensity"),
   cardColor: $("cardColor"),
   correctColor: $("correctColor"),
   wrongColor: $("wrongColor"),
   resetColor: $("resetColor"),
-  feedbackCorrect: $("fbCorrect"),
-  feedbackWrong: $("fbWrong"),
-  feedbackFinished: $("fbFinished"),
+  toolbarTransparent: $("toolbarTransparent"),
+  toolbarColor: $("toolbarColor"),
+  fbCorrect: $("fbCorrect"),
+  fbWrong: $("fbWrong"),
+  fbFinished: $("fbFinished"),
   stage: $("stage"),
   stageBg: $("stageBg"),
   stageContent: $("stageContent"),
   gameArea: $("gameArea"),
-  leftColumn: $("colLeft"),
-  rightColumn: $("colRight"),
+  left: $("colLeft"),
+  right: $("colRight"),
   message: $("message"),
-  remaining: $("leftCount"),
+  leftCount: $("leftCount"),
   score: $("score"),
-  embedCode: $("embedCode")
+  embed: $("embedCode")
 };
 
-let language = "ru";
-const editedFeedback = { correct: false, wrong: false, finished: false };
+let lang = "ru";
+let dirty = { correct: false, wrong: false, finished: false };
 
 let game = {
   pairs: [],
@@ -893,12 +433,12 @@ let game = {
   right: [],
   selected: null,
   matched: new Set(),
-  randomItems: [],
+  random: [],
   score: 0
 };
 
 function t(key) {
-  return LOCALES[language]?.[key] || key;
+  return LOCALES[lang]?.[key] || key;
 }
 
 function parsePairs(text) {
@@ -916,7 +456,7 @@ function parsePairs(text) {
     .filter(Boolean);
 }
 
-function isImageUrl(value) {
+function isImage(value) {
   try {
     const url = new URL(value, location.href);
     return /\.(png|jpe?g|gif|webp|svg|avif)$/i.test(url.pathname) ||
@@ -937,7 +477,7 @@ function shuffle(items) {
   return result;
 }
 
-function encodeConfig(config) {
+function encode(config) {
   const bytes = new TextEncoder().encode(JSON.stringify(config));
   let binary = "";
 
@@ -945,7 +485,7 @@ function encodeConfig(config) {
   return btoa(binary);
 }
 
-function decodeConfig(token) {
+function decode(token) {
   try {
     const binary = atob(token);
     const bytes = Uint8Array.from(binary, char => char.charCodeAt(0));
@@ -955,8 +495,8 @@ function decodeConfig(token) {
   }
 }
 
-function textColorFor(hex) {
-  const value = hex.replace("#", "");
+function textColor(hex) {
+  const value = hex.slice(1);
   const full = value.length === 3
     ? value.split("").map(char => char + char).join("")
     : value;
@@ -966,18 +506,24 @@ function textColorFor(hex) {
   const blue = number & 255;
   const brightness = (red * 299 + green * 587 + blue * 114) / 1000;
 
-  return brightness > 145 ? "#102018" : "#ffffff";
+  return brightness > 145 ? "#102018" : "#fff";
 }
 
 function applyColors() {
-  document.documentElement.style.setProperty("--card", ui.cardColor.value);
-  document.documentElement.style.setProperty("--correct", ui.correctColor.value);
-  document.documentElement.style.setProperty("--wrong", ui.wrongColor.value);
-  document.documentElement.style.setProperty("--reset", ui.resetColor.value);
-  document.documentElement.style.setProperty("--reset-text", textColorFor(ui.resetColor.value));
+  const root = document.documentElement;
+
+  root.style.setProperty("--card", ui.cardColor.value);
+  root.style.setProperty("--correct", ui.correctColor.value);
+  root.style.setProperty("--wrong", ui.wrongColor.value);
+  root.style.setProperty("--reset", ui.resetColor.value);
+  root.style.setProperty("--reset-text", textColor(ui.resetColor.value));
+  root.style.setProperty(
+    "--toolbar",
+    ui.toolbarTransparent.checked ? "transparent" : ui.toolbarColor.value
+  );
 }
 
-function readBackgroundSettings() {
+function readBackground() {
   return {
     type: ui.bgType.value,
     solid: ui.bgSolid.value,
@@ -990,46 +536,46 @@ function readBackgroundSettings() {
     imageUrl: ui.bgUrl.value,
     blur: Number(ui.blur.value) || 0,
     blurAnimated: ui.blurAnim.checked,
-    blurDuration: Number(ui.blurDuration.value) || 4,
+    blurDuration: Number(ui.blurDur.value) || 4,
     glitch: ui.glitch.value,
     glitchIntensity: Number(ui.glitchIntensity.value) || 4
   };
 }
 
 function applyBackground() {
-  const bg = ui.stageBg;
-  const settings = readBackgroundSettings();
+  const settings = readBackground();
+  const background = ui.stageBg;
 
-  bg.className = "stage-bg";
-  bg.style.background = "transparent";
-  bg.style.filter = "";
-  bg.style.setProperty("--blur-max", settings.blur + "px");
-  bg.style.setProperty("--blur-duration", settings.blurDuration + "s");
-  bg.style.setProperty(
+  background.className = "stage-bg";
+  background.style.background = "transparent";
+  background.style.filter = "";
+  background.style.setProperty("--blur-max", settings.blur + "px");
+  background.style.setProperty("--blur-duration", settings.blurDuration + "s");
+  background.style.setProperty(
     "--glitch-opacity",
     String(settings.glitchIntensity / 10 * (settings.glitch === "strong" ? .32 : .2))
   );
 
   if (settings.type === "solid") {
-    bg.style.background = settings.solid;
+    background.style.background = settings.solid;
   } else if (settings.type === "gradient") {
-    bg.style.background =
+    background.style.background =
       `linear-gradient(${settings.gradient.direction}, ${settings.gradient.g1}, ${settings.gradient.g2}, ${settings.gradient.g3})`;
   } else if (settings.type === "image" && settings.imageUrl) {
     const safeUrl = settings.imageUrl.replace(/["\\]/g, "");
-    bg.style.background = `url("${safeUrl}") center / cover no-repeat`;
+    background.style.background = `url("${safeUrl}") center/cover no-repeat`;
   }
 
   if (settings.blur > 0) {
     if (settings.blurAnimated) {
-      bg.classList.add("animated-blur");
+      background.classList.add("animated-blur");
     } else {
-      bg.style.filter = `blur(${settings.blur}px)`;
+      background.style.filter = `blur(${settings.blur}px)`;
     }
   }
 
   if (settings.glitch !== "none") {
-    bg.classList.add("glitch", settings.glitch);
+    background.classList.add("glitch", settings.glitch);
   }
 }
 
@@ -1041,10 +587,10 @@ function makeCard(item, side) {
   card.dataset.side = side;
   card.setAttribute("aria-pressed", "false");
 
-  if (item.isImage) {
+  if (item.image) {
     const image = document.createElement("img");
     image.src = item.value;
-    image.alt = item.alt || item.value;
+    image.alt = item.value;
     image.loading = "lazy";
 
     image.onerror = () => {
@@ -1057,10 +603,10 @@ function makeCard(item, side) {
 
     card.append(image);
   } else {
-    const span = document.createElement("span");
-    span.className = "card-text";
-    span.textContent = item.value;
-    card.append(span);
+    const text = document.createElement("span");
+    text.className = "card-text";
+    text.textContent = item.value;
+    card.append(text);
   }
 
   card.addEventListener("click", () => chooseCard(card));
@@ -1077,19 +623,19 @@ function startGame(pairs) {
   game.left = shuffle(game.pairs.map(pair => ({
     id: pair.id,
     value: pair.left,
-    isImage: isImageUrl(pair.left)
+    image: isImage(pair.left)
   })));
 
   game.right = shuffle(game.pairs.map(pair => ({
     id: pair.id,
     value: pair.right,
-    isImage: isImageUrl(pair.right)
+    image: isImage(pair.right)
   })));
 
   game.matched = new Set();
   game.selected = null;
   game.score = 0;
-  game.randomItems = shuffle([
+  game.random = shuffle([
     ...game.left.map(item => ({ ...item, side: "left" })),
     ...game.right.map(item => ({ ...item, side: "right" }))
   ]);
@@ -1098,8 +644,8 @@ function startGame(pairs) {
 }
 
 function clearCards() {
-  ui.leftColumn.replaceChildren();
-  ui.rightColumn.replaceChildren();
+  ui.left.replaceChildren();
+  ui.right.replaceChildren();
   ui.gameArea.querySelectorAll(".random-card").forEach(card => card.remove());
 }
 
@@ -1108,7 +654,7 @@ function renderGame() {
   applyBackground();
   clearCards();
 
-  ui.remaining.textContent = String(game.pairs.length - game.matched.size);
+  ui.leftCount.textContent = String(game.pairs.length - game.matched.size);
   ui.score.textContent = String(game.score);
   ui.message.textContent = "";
 
@@ -1116,31 +662,26 @@ function renderGame() {
   ui.gameArea.className = "game-area " + layout;
   ui.gameArea.style.removeProperty("--cols");
   ui.gameArea.style.removeProperty("--rows");
-  ui.leftColumn.hidden = false;
-  ui.rightColumn.hidden = false;
+  ui.left.hidden = false;
+  ui.right.hidden = false;
 
   if (layout === "random") {
-    ui.leftColumn.hidden = true;
-    ui.rightColumn.hidden = true;
+    ui.left.hidden = true;
+    ui.right.hidden = true;
     ui.stageContent.style.overflow = "hidden";
 
-    const items = game.randomItems.filter(item => !game.matched.has(item.id));
+    const items = game.random.filter(item => !game.matched.has(item.id));
     const rect = ui.stageContent.getBoundingClientRect();
     const count = items.length;
+    const width = Math.max(240, rect.width - 48);
+    const height = Math.max(180, rect.height - 90);
 
-    /* Оставляем запас под внутренние отступы и сообщение под карточками. */
-    const availableWidth = Math.max(240, rect.width - 48);
-    const availableHeight = Math.max(180, rect.height - 90);
-
-    let columns = Math.max(
-      1,
-      Math.ceil(Math.sqrt(count * (availableWidth / availableHeight)))
-    );
-
+    let columns = Math.max(1, Math.ceil(Math.sqrt(count * width / height)));
     columns = Math.min(columns, Math.max(1, count));
+
     let rows = Math.ceil(count / columns);
 
-    while (rows > 1 && availableHeight / rows < 62 && columns < count) {
+    while (rows > 1 && height / rows < 62 && columns < count) {
       columns++;
       rows = Math.ceil(count / columns);
     }
@@ -1148,8 +689,8 @@ function renderGame() {
     ui.gameArea.style.setProperty("--cols", columns);
     ui.gameArea.style.setProperty("--rows", rows);
 
-    const cellWidth = availableWidth / columns;
-    const cellHeight = availableHeight / rows;
+    const cellWidth = width / columns;
+    const cellHeight = height / rows;
     const fontSize = Math.max(
       12,
       Math.min(21, Math.floor(Math.min(cellWidth / 13, cellHeight / 3.5)))
@@ -1173,42 +714,42 @@ function renderGame() {
   ui.stageContent.style.overflow = "auto";
 
   const pairCount = Math.max(1, game.pairs.length);
-  const availableHeight = ui.stageContent.clientHeight || 500;
+  const stageHeight = ui.stageContent.clientHeight || 500;
   const cardHeight = Math.min(
     220,
-    Math.max(62, Math.floor((availableHeight - 12 * (pairCount + 1)) / pairCount))
+    Math.max(62, Math.floor((stageHeight - 12 * (pairCount + 1)) / pairCount))
   );
 
   ui.gameArea.style.setProperty("--card-height", cardHeight + "px");
   ui.gameArea.style.setProperty(
     "--card-font",
-    `clamp(14px, ${Math.min(1.65, Math.max(.95, availableHeight / (pairCount * 360)))}vw, 21px)`
+    `clamp(14px, ${Math.min(1.65, Math.max(.95, stageHeight / (pairCount * 360)))}vw, 21px)`
   );
 
   if (layout === "horizontal") {
     game.left
       .filter(item => !game.matched.has(item.id))
-      .forEach(item => ui.leftColumn.append(makeCard(item, "left")));
+      .forEach(item => ui.left.append(makeCard(item, "left")));
 
     game.right
       .filter(item => !game.matched.has(item.id))
-      .forEach(item => ui.rightColumn.append(makeCard(item, "right")));
+      .forEach(item => ui.right.append(makeCard(item, "right")));
   } else {
     const columns = Math.min(
       pairCount,
       Math.max(1, Math.floor((ui.stageContent.clientWidth || 700) / 260))
     );
 
-    ui.leftColumn.style.gridTemplateColumns = `repeat(${columns}, minmax(0,1fr))`;
-    ui.rightColumn.style.gridTemplateColumns = `repeat(${columns}, minmax(0,1fr))`;
+    ui.left.style.gridTemplateColumns = `repeat(${columns}, minmax(0,1fr))`;
+    ui.right.style.gridTemplateColumns = `repeat(${columns}, minmax(0,1fr))`;
 
     game.left
       .filter(item => !game.matched.has(item.id))
-      .forEach(item => ui.leftColumn.append(makeCard(item, "left")));
+      .forEach(item => ui.left.append(makeCard(item, "left")));
 
     game.right
       .filter(item => !game.matched.has(item.id))
-      .forEach(item => ui.rightColumn.append(makeCard(item, "right")));
+      .forEach(item => ui.right.append(makeCard(item, "right")));
   }
 }
 
@@ -1241,33 +782,30 @@ function chooseCard(card) {
   }
 
   const first = game.selected;
-  const leftId = side === "left" ? id : first.id;
-  const rightId = side === "right" ? id : first.id;
   const firstCard = first.card;
 
   firstCard.classList.remove("selected");
   firstCard.setAttribute("aria-pressed", "false");
   game.selected = null;
 
-  if (leftId === rightId) {
+  if (first.id === id) {
     game.matched.add(id);
     game.score++;
     renderGame();
 
-    ui.message.textContent =
-      game.matched.size === game.pairs.length
-        ? (ui.feedbackFinished.value || t("finished"))
-        : (ui.feedbackCorrect.value || t("correct"));
+    ui.message.textContent = game.matched.size === game.pairs.length
+      ? (ui.fbFinished.value || t("finished"))
+      : (ui.fbCorrect.value || t("correct"));
   } else {
     firstCard.classList.add("wrong");
     card.classList.add("wrong");
-    ui.message.textContent = ui.feedbackWrong.value || t("wrong");
+    ui.message.textContent = ui.fbWrong.value || t("wrong");
 
     setTimeout(() => {
       firstCard.classList.remove("wrong");
       card.classList.remove("wrong");
 
-      if (ui.message.textContent === (ui.feedbackWrong.value || t("wrong"))) {
+      if (ui.message.textContent === (ui.fbWrong.value || t("wrong"))) {
         ui.message.textContent = "";
       }
     }, 650);
@@ -1277,19 +815,21 @@ function chooseCard(card) {
 function getConfig() {
   return {
     pairs: parsePairs(ui.pairs.value),
-    lang: language,
+    lang,
     layout: ui.layout.value,
-    bg: readBackgroundSettings(),
+    bg: readBackground(),
     colors: {
       card: ui.cardColor.value,
       correct: ui.correctColor.value,
       wrong: ui.wrongColor.value,
-      reset: ui.resetColor.value
+      reset: ui.resetColor.value,
+      toolbar: ui.toolbarColor.value,
+      toolbarTransparent: ui.toolbarTransparent.checked
     },
     feedback: {
-      correct: ui.feedbackCorrect.value,
-      wrong: ui.feedbackWrong.value,
-      finished: ui.feedbackFinished.value
+      correct: ui.fbCorrect.value,
+      wrong: ui.fbWrong.value,
+      finished: ui.fbFinished.value
     }
   };
 }
@@ -1298,7 +838,7 @@ function makeGameUrl(embed) {
   const url = new URL(location.href);
   url.search = "";
   url.hash = "";
-  url.searchParams.set("game", encodeConfig(getConfig()));
+  url.searchParams.set("game", encode(getConfig()));
 
   if (embed) url.searchParams.set("embed", "1");
 
@@ -1306,29 +846,29 @@ function makeGameUrl(embed) {
 }
 
 function applyLanguage() {
-  document.documentElement.lang = language;
+  document.documentElement.lang = lang;
   $("titleText").textContent = t("title");
   $("subtitleText").textContent = t("subtitle");
   $("previewTitle").textContent = t("preview");
   $("previewHint").textContent = t("hint");
 
-  if (!editedFeedback.correct) ui.feedbackCorrect.value = t("correct");
-  if (!editedFeedback.wrong) ui.feedbackWrong.value = t("wrong");
-  if (!editedFeedback.finished) ui.feedbackFinished.value = t("finished");
+  if (!dirty.correct) ui.fbCorrect.value = t("correct");
+  if (!dirty.wrong) ui.fbWrong.value = t("wrong");
+  if (!dirty.finished) ui.fbFinished.value = t("finished");
 }
 
 function syncBackgroundControls() {
   ui.gradientControls.hidden = ui.bgType.value !== "gradient";
   ui.imageControls.hidden = ui.bgType.value !== "image";
-  ui.blurValue.textContent = ui.blur.value;
+  ui.blurVal.textContent = ui.blur.value;
 }
 
 function applyConfig(config) {
   if (config.lang === "ru" || config.lang === "en") {
-    language = config.lang;
+    lang = config.lang;
   }
 
-  ui.lang.value = language;
+  ui.lang.value = lang;
 
   if (config.layout) ui.layout.value = config.layout;
 
@@ -1337,15 +877,18 @@ function applyConfig(config) {
     if (config.colors.correct) ui.correctColor.value = config.colors.correct;
     if (config.colors.wrong) ui.wrongColor.value = config.colors.wrong;
     if (config.colors.reset) ui.resetColor.value = config.colors.reset;
+    if (config.colors.toolbar) ui.toolbarColor.value = config.colors.toolbar;
+
+    if (typeof config.colors.toolbarTransparent === "boolean") {
+      ui.toolbarTransparent.checked = config.colors.toolbarTransparent;
+    }
   }
 
   if (config.feedback) {
-    ui.feedbackCorrect.value = config.feedback.correct || t("correct");
-    ui.feedbackWrong.value = config.feedback.wrong || t("wrong");
-    ui.feedbackFinished.value = config.feedback.finished || t("finished");
-    editedFeedback.correct = true;
-    editedFeedback.wrong = true;
-    editedFeedback.finished = true;
+    ui.fbCorrect.value = config.feedback.correct || t("correct");
+    ui.fbWrong.value = config.feedback.wrong || t("wrong");
+    ui.fbFinished.value = config.feedback.finished || t("finished");
+    dirty = { correct: true, wrong: true, finished: true };
   }
 
   if (config.bg) {
@@ -1365,41 +908,39 @@ function applyConfig(config) {
     if (Number.isFinite(bg.blur)) ui.blur.value = bg.blur;
 
     ui.blurAnim.checked = Boolean(bg.blurAnimated || bg.blurAnim);
+    ui.blurDur.value = bg.blurDuration || bg.blurAnimDur || 4;
+    ui.glitch.value = bg.glitch || bg.glitchMode || "none";
 
-    if (bg.blurDuration || bg.blurAnimDur) {
-      ui.blurDuration.value = bg.blurDuration || bg.blurAnimDur;
+    if (bg.glitchIntensity) {
+      ui.glitchIntensity.value = bg.glitchIntensity;
     }
-
-    if (bg.glitch) ui.glitch.value = bg.glitch;
-    if (bg.glitchMode) ui.glitch.value = bg.glitchMode;
-    if (bg.glitchIntensity) ui.glitchIntensity.value = bg.glitchIntensity;
   }
 
   syncBackgroundControls();
   applyLanguage();
 }
 
-function enterGameMode(embed) {
-  document.documentElement.classList.add(embed ? "embed-mode" : "editor-game-mode");
-  $("fullscreenBtn").remove();
-  ui.stageContent.style.overflow = ui.layout.value === "random" ? "hidden" : "auto";
-}
-
-function loadGameFromUrl() {
+function loadFromUrl() {
   const params = new URLSearchParams(location.search);
   const token = params.get("game");
 
   if (!token) return false;
 
-  const config = decodeConfig(token);
+  const config = decode(token);
 
   if (!config || !Array.isArray(config.pairs)) {
-    ui.message.textContent = "Не удалось загрузить игру: проверьте ссылку.";
+    ui.message.textContent = "Не удалось загрузить игру из ссылки.";
     return true;
   }
 
   applyConfig(config);
-  enterGameMode(params.has("embed"));
+
+  document.documentElement.classList.add(
+    params.has("embed") ? "embed-mode" : "editor-game-mode"
+  );
+
+  $("fullscreenBtn").remove();
+
   ui.pairs.value = config.pairs
     .map(pair => `${pair.left} | ${pair.right}`)
     .join("\n");
@@ -1416,7 +957,7 @@ $("previewBtn").addEventListener("click", () => {
     return;
   }
 
-  ui.stage.style.height = `${Math.max(300, Number(ui.previewHeight.value) || 620)}px`;
+  ui.stage.style.height = `${Math.max(300, Number(ui.height.value) || 620)}px`;
   startGame(pairs);
 });
 
@@ -1430,14 +971,13 @@ $("generateBtn").addEventListener("click", () => {
 
   startGame(pairs);
 
-  const src = makeGameUrl(true);
-  ui.embedCode.value =
-    `<iframe src="${src}" style="display:block;width:100%;height:100vh;border:0;background:transparent" allow="fullscreen" allowtransparency="true"></iframe>`;
+  ui.embed.value =
+    `<iframe src="${makeGameUrl(true)}" style="display:block;width:100%;height:100vh;border:0;background:transparent" allow="fullscreen" allowtransparency="true"></iframe>`;
 
   ui.message.textContent = "Iframe готов. Скопируйте код из поля редактора.";
 });
 
-function openGameInNewTab() {
+function openGame() {
   const pairs = parsePairs(ui.pairs.value);
 
   if (!pairs.length) {
@@ -1449,8 +989,8 @@ function openGameInNewTab() {
   window.open(makeGameUrl(false), "_blank", "noopener");
 }
 
-$("startBtn").addEventListener("click", openGameInNewTab);
-$("fullscreenBtn").addEventListener("click", openGameInNewTab);
+$("startBtn").addEventListener("click", openGame);
+$("fullscreenBtn").addEventListener("click", openGame);
 
 $("resetBtn").addEventListener("click", () => {
   if (!game.pairs.length) return;
@@ -1463,7 +1003,7 @@ $("resetBtn").addEventListener("click", () => {
 
 $("clearBtn").addEventListener("click", () => {
   ui.pairs.value = "";
-  ui.embedCode.value = "";
+  ui.embed.value = "";
 
   game = {
     pairs: [],
@@ -1471,22 +1011,22 @@ $("clearBtn").addEventListener("click", () => {
     right: [],
     selected: null,
     matched: new Set(),
-    randomItems: [],
+    random: [],
     score: 0
   };
 
   clearCards();
-  ui.remaining.textContent = "0";
+  ui.leftCount.textContent = "0";
   ui.score.textContent = "0";
   ui.message.textContent = "";
 });
 
 $("copyBtn").addEventListener("click", async () => {
   try {
-    await navigator.clipboard.writeText(ui.embedCode.value);
+    await navigator.clipboard.writeText(ui.embed.value);
   } catch {
-    ui.embedCode.focus();
-    ui.embedCode.select();
+    ui.embed.focus();
+    ui.embed.select();
     document.execCommand("copy");
   }
 
@@ -1495,23 +1035,25 @@ $("copyBtn").addEventListener("click", async () => {
 });
 
 ui.lang.addEventListener("change", () => {
-  language = ui.lang.value;
+  lang = ui.lang.value;
   applyLanguage();
 });
 
 [
-  ["correct", ui.feedbackCorrect],
-  ["wrong", ui.feedbackWrong],
-  ["finished", ui.feedbackFinished]
+  ["correct", ui.fbCorrect],
+  ["wrong", ui.fbWrong],
+  ["finished", ui.fbFinished]
 ].forEach(([key, input]) => {
-  input.addEventListener("input", () => editedFeedback[key] = true);
+  input.addEventListener("input", () => dirty[key] = true);
 });
 
 [
   ui.cardColor,
   ui.correctColor,
   ui.wrongColor,
-  ui.resetColor
+  ui.resetColor,
+  ui.toolbarTransparent,
+  ui.toolbarColor
 ].forEach(input => {
   input.addEventListener("input", () => {
     applyColors();
@@ -1521,12 +1063,13 @@ ui.lang.addEventListener("change", () => {
 
 [
   ui.bgType, ui.bgSolid, ui.g1, ui.g2, ui.g3, ui.gDir, ui.bgUrl,
-  ui.blur, ui.blurAnim, ui.blurDuration, ui.glitch, ui.glitchIntensity
+  ui.blur, ui.blurAnim, ui.blurDur, ui.glitch, ui.glitchIntensity
 ].forEach(input => {
   input.addEventListener("input", () => {
     syncBackgroundControls();
     applyBackground();
   });
+
   input.addEventListener("change", () => {
     syncBackgroundControls();
     applyBackground();
@@ -1550,7 +1093,7 @@ window.addEventListener("load", () => {
   syncBackgroundControls();
   applyLanguage();
 
-  if (loadGameFromUrl()) return;
+  if (loadFromUrl()) return;
 
   ui.pairs.value =
     "It tastes like sugar and is pleasant to eat. | Sweet\n" +
